@@ -1,4 +1,7 @@
-﻿<MudPaper Elevation="3" Class="p-3">
+﻿@inject IJSRuntime _jsRuntime
+
+
+<MudPaper Elevation="3" Class="p-3">
     <form action="https://api.web3forms.com/submit" method="POST" onsubmit="return validateCaptcha()">
         <MudStack>
             <input type="hidden" name="access_key" value="0160a216-bd3d-4c66-a072-ee397ee03c6e">
@@ -30,14 +33,16 @@
 
     <!-- For hCaptcha -->
     <script src="https://web3forms.com/client/script.js" async defer></script>
-    <script>
-        function validateCaptcha() {
-            var captchaResponse = document.querySelector('textarea[name="h-captcha-response"]').value;
-            if (!captchaResponse) {
-                document.getElementById("captcha-error").style.display = "block";
-                return false;
-            }
-            return true;
-        }
-    </script>
 </MudPaper>
+
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Reload the captcha
+            await _jsRuntime.InvokeVoidAsync("reloadHCaptcha");
+        }
+    }
+}
