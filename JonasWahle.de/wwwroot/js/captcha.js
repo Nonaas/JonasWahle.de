@@ -1,14 +1,8 @@
 ﻿function reloadHCaptcha() {
     if (window.hcaptcha) {
+        console.log("Reloading hCaptcha...");
         hcaptcha.render(document.querySelector('.h-captcha'));
+    } else {
+        console.error("hCaptcha is not available!");
     }
-}
-
-function validateCaptcha() {
-    var captchaResponse = document.querySelector('textarea[name="h-captcha-response"]');
-    if (!captchaResponse || captchaResponse.value.trim() === "") {
-        document.getElementById("captcha-error").style.display = "block";
-        return false;
-    }
-    return true;
 }
