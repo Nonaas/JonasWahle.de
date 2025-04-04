@@ -1,0 +1,73 @@
+﻿@page "/about"
+
+<PageTitle>Über mich</PageTitle>
+<MudStack Spacing="5">
+    <MudText Typo="Typo.h3" Align="Align.Center">Über mich</MudText>
+
+    <MudPaper Class="pa-8 ma-1" Elevation="3">
+        <MudStack Spacing="4">
+            
+            <MudText Typo="Typo.h4" Class="mb-4">Hey, ich bin Jonas!</MudText>
+            
+            <MudText Typo="Typo.h6" Class="mb-2" Color="Color.Tertiary">
+                💻 Full-Stack-Entwickler | 🧠 Code-Enthusiast | 🧗 Kletterer & Radler
+            </MudText>
+
+            <MudText Typo="Typo.h5">
+                Seit 2022 entwickle ich Software, die nicht nur funktioniert, sondern auch Freude macht – 
+                ob plattformübergreifende Apps mit C# und Blazor-Hybrid oder Lösungen für komplexe ERP-Systeme.
+            </MudText>
+
+            <MudText Class="my-3" Typo="Typo.h6" Color="Color.Tertiary">
+                <i>"Code sollte Menschen unterstützen, ohne sie zu verwirren."</i>
+            </MudText>
+
+            <MudText Typo="Typo.h4">Warum ich Code liebe?</MudText>
+            <MudText Typo="Typo.h5">
+                Weil ich gerne Dinge baue, die bleiben. Meine Zeit im sozialen Bereich hat mir gezeigt, 
+                wie wichtig klare Kommunikation und Teamwork sind – heute setze ich das in vielseitigen agilen Projekten um.
+            </MudText>
+
+            <MudList T="object" Padding="true" Class="my-2">
+                <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/dotnet/csharp/">
+                    <MudText Typo="Typo.h5">
+                        <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-4" />
+                        C# / .NET – Mein tägliches Werkzeug
+                    </MudText>
+                </MudListItem>
+                <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/aspnet/core/blazor/hybrid">
+                    <MudText Typo="Typo.h5">
+                        <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-4" />
+                        Blazor Hybrid – Für plattformübergreifende Apps
+                    </MudText>
+                </MudListItem>
+                <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/aspnet/core/blazor">
+                    <MudText Typo="Typo.h5">
+                        <MudIcon Icon="@Icons.Material.Filled.Public" Class="mr-4" />
+                        Blazor WASM & Server – Für Webseiten & progressive Webapps
+                    </MudText>
+                </MudListItem>
+            </MudList>
+
+            <MudText Typo="Typo.h4" Class="mt-4">Abseits des Codes</MudText>
+            <MudText Typo="Typo.h5">
+                🧗 Unterwegs in Kletterhallen | 🚴 Gemütliche Radtouren | 🔌 DIY-Projekte mit Raspberry Pi & Co.
+            </MudText>
+
+            <MudDivider Class="my-4" />
+
+            <MudText Typo="Typo.h4">Lass uns connecten!</MudText>
+            
+            <MudStack Justify="Justify.Center" Spacing="4" Class="mt-3">
+                <MudLink Typo="Typo.h5" Href="mailto:wahle.jonas@web.de" Class="mx-2" Color="Color.Info">
+                    📩 E-Mail schreiben
+                </MudLink>
+                
+                <MudLink Typo="Typo.h5" Href="/downloads" Class="mx-2" Color="Color.Info">
+                    🛠️ Projekte entdecken
+                </MudLink>
+            </MudStack>
+
+        </MudStack>
+    </MudPaper>
+</MudStack>

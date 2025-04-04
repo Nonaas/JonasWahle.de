@@ -1,0 +1,32 @@
+﻿<MudPaper Elevation="3" Class="p-3">
+    <form action="https://api.web3forms.com/submit" method="POST">
+        <MudStack>
+            <input type="hidden" name="access_key" value="0160a216-bd3d-4c66-a072-ee397ee03c6e">
+
+            <MudInputLabel Variant="Variant.Text" ForId="name">Name</MudInputLabel>
+            <MudInput T="string" InputType="InputType.Text" InputId="name" name="name" Variant="Variant.Outlined" Required/>
+
+            <MudInputLabel Variant="Variant.Text" ForId="email">Email</MudInputLabel>
+            <MudInput T="string" InputType="InputType.Email" InputId="email" name="email" Variant="Variant.Outlined" Required />
+
+            <MudInputLabel Variant="Variant.Text" ForId="message">Nachricht</MudInputLabel>
+            <MudInput T="string" InputType="InputType.Text" InputId="message" name="message" Variant="Variant.Outlined" Required Lines="3"/>
+
+            <!-- Honeypot -->
+            <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+            <!-- hCaptcha -->
+            <div class="h-captcha" data-captcha="true"></div>
+
+            <!-- Confirmation -->
+            <input type="hidden" name="redirect" value="https://jonaswahle.de/contact">
+
+            <MudButton ButtonType="ButtonType.Submit" Size="Size.Large" Color="Color.Tertiary" Variant="Variant.Filled">
+                Senden
+            </MudButton>
+        </MudStack>
+    </form>
+
+    <!-- For hCaptcha -->
+    <script src="https://web3forms.com/client/script.js" async defer></script>
+
+</MudPaper>

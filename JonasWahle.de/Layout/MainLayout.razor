@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+<div class="page">
+    <div class="sidebar">
+        <NavigationMenu />
+    </div>
+
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+
+        <footer class="footer-section text-center">
+                &copy; 2023<br />
+                Jonas Wahle<br />
+        </footer>
+    </main>
+</div>
+
+
+@* Required for MudBlazor *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for MudBlazor dialogs *@
+<MudDialogProvider />
+
+@* Needed for MudBlazor snackbars *@
+<MudSnackbarProvider />
