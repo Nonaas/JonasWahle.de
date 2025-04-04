@@ -1,21 +1,23 @@
 ﻿<MudPaper Elevation="3" Class="p-3">
-    <form action="https://api.web3forms.com/submit" method="POST">
+    <form action="https://api.web3forms.com/submit" method="POST" onsubmit="return validateCaptcha()">
         <MudStack>
             <input type="hidden" name="access_key" value="0160a216-bd3d-4c66-a072-ee397ee03c6e">
 
             <MudInputLabel Variant="Variant.Text" ForId="name">Name</MudInputLabel>
-            <MudInput T="string" InputType="InputType.Text" InputId="name" name="name" Variant="Variant.Outlined" Required/>
+            <MudInput T="string" InputType="InputType.Text" InputId="name" name="name" Variant="Variant.Outlined" Required />
 
             <MudInputLabel Variant="Variant.Text" ForId="email">Email</MudInputLabel>
             <MudInput T="string" InputType="InputType.Email" InputId="email" name="email" Variant="Variant.Outlined" Required />
 
             <MudInputLabel Variant="Variant.Text" ForId="message">Nachricht</MudInputLabel>
-            <MudInput T="string" InputType="InputType.Text" InputId="message" name="message" Variant="Variant.Outlined" Required Lines="3"/>
+            <MudInput T="string" InputType="InputType.Text" InputId="message" name="message" Variant="Variant.Outlined" Required Lines="3" />
 
             <!-- Honeypot -->
             <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
             <!-- hCaptcha -->
-            <div class="h-captcha" data-captcha="true"></div>
+            <div class="h-captcha" data-sitekey="c3428228-7948-4df6-baca-cc4aae0a8e96" data-captcha="true"></div>
+            <span id="captcha-error" style="color: red; display: none;">Bitte löse das Captcha.</span>
 
             <!-- Confirmation -->
             <input type="hidden" name="redirect" value="https://jonaswahle.de/contact">
@@ -28,5 +30,14 @@
 
     <!-- For hCaptcha -->
     <script src="https://web3forms.com/client/script.js" async defer></script>
-
+    <script>
+        function validateCaptcha() {
+            var captchaResponse = document.querySelector('textarea[name="h-captcha-response"]').value;
+            if (!captchaResponse) {
+                document.getElementById("captcha-error").style.display = "block";
+                return false;
+            }
+            return true;
+        }
+    </script>
 </MudPaper>
