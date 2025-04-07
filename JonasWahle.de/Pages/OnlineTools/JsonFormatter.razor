@@ -1,0 +1,87 @@
+﻿@using System.Text.Json
+@inject ISnackbarService _snackbarService
+@inject IClipboardService _clipboardService
+
+
+<MudPaper Class="pa-8 ma-1" Elevation="3">
+    <MudText Typo="Typo.h4" Class="mb-4">JSON Formatierer</MudText>
+
+    <MudTextField T="string"
+    Label="JSON-Rohdaten"
+    @bind-Value="inputJson"
+    Lines="12"
+    Variant="Variant.Outlined"
+    Placeholder="@("{ \"Beispiel\": true }")"
+    FullWidth />
+
+    <MudStack Row Spacing="2" Justify="Justify.Center" Class="w-100 pb-2 pt-1">
+        <MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="FormatJson">Forma&shy;tieren</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="ClearJson">Zurück&shy;setzen</MudButton>
+        <MudFileUpload Accept=".json" T="IBrowserFile" FilesChanged="OnUploadFileChanged">
+            <ActivatorContent>
+                <MudButton Color="Color.Tertiary" Variant="Variant.Filled">JSON Datei hochladen</MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+
+    </MudStack>
+
+    <MudTextField T="string"
+    Label="Formatiertes JSON"
+    Value="@formattedJson"
+    Lines="12"
+    ReadOnly
+    FullWidth
+    Variant="Variant.Filled" />
+
+    <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="w-100 pt-2" OnClick="CopyJson">Formatiertes JSON kopieren</MudButton>
+
+</MudPaper>
+
+
+@code {
+    private string inputJson = string.Empty;
+    private string formattedJson = string.Empty;
+
+
+    private void FormatJson()
+    {
+        try
+        {
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(inputJson);
+            formattedJson = JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError($"Ungültiges JSON: {ex.Message}");
+        }
+    }
+
+    private void ClearJson()
+    {
+        inputJson = string.Empty;
+        formattedJson = string.Empty;
+    }
+
+    private async Task CopyJson()
+    {
+        await _clipboardService.CopyToClipboard(formattedJson);
+        _snackbarService.ShowSuccess("Kopieren erfolgreich!");
+    }
+
+    private async Task OnUploadFileChanged(IBrowserFile file)
+    {
+        try
+        {
+            using StreamReader reader = new StreamReader(file.OpenReadStream());
+            inputJson = await reader.ReadToEndAsync();
+
+            FormatJson();
+
+            _snackbarService.ShowSuccess("JSON erfolgreich hochgeladen!");
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+}
