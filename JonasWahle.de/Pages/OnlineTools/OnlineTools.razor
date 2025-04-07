@@ -1,0 +1,135 @@
+﻿@page "/online-tools"
+@using MudBlazor.Utilities
+@using PinguApps.Blazor.QRCode
+@inject ISnackbarService _snackbarService
+@inject IJSRuntime _jsRuntime
+
+
+<PageTitle>Online Tools</PageTitle>
+<MudStack Spacing="5">
+    <MudText Typo="Typo.h3" Align="Align.Center">Online Tools</MudText>
+
+    <MudPaper Class="pa-8 ma-1" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">QR-Code Generator</MudText>
+        <MudGrid Spacing="5">
+
+            @* QR code image *@
+            <MudItem xs="12" sm="6" Class="d-flex justify-content-center align-items-center">
+                @if (!string.IsNullOrEmpty(QrCodeContent))
+                {
+                    <QRCode Id="qrCodeImage" Data="@QrCodeContent"
+                    Size="250px"
+                    ForeColor="@foregroundColor.ToString()"
+                    BackColor="@backgroundColor.ToString()"
+                    Image="@uploadImagePath"
+                    ErrorCorrection="ErrorCorrection.High" />
+                }
+                else
+                {
+                    <MudStack Style="min-height: 250px;" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Tertiary" />
+                        <MudText Align="Align.Center" Typo="Typo.caption"><i>Inhalt eingeben zum Generieren</i></MudText>
+                    </MudStack>
+                }
+            </MudItem>
+
+            @* Configuration *@
+            <MudItem xs="12" sm="6">
+                <MudStack Spacing="4">
+                    <MudInput Required Immediate T="string" @bind-Value="QrCodeContent" Placeholder="Inhalt eingeben" Variant="Variant.Outlined" Lines="4" Clearable />
+
+                    <MudGrid Spacing="4">
+                        <MudItem xs="6">
+                            <MudColorPicker Label="Vordergrundfarbe" ColorPickerView="ColorPickerView.Palette" @bind-Value="foregroundColor" AnchorOrigin="Origin.TopLeft" />
+                        </MudItem>
+
+                        <MudItem xs="6">
+                            <MudColorPicker Label="Hintergrundfarbe" ColorPickerView="ColorPickerView.Palette" @bind-Value="backgroundColor" AnchorOrigin="Origin.TopRight" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudGrid Spacing="4">
+                        <MudItem sm="12" md="6" Class="w-100">
+                            <MudFileUpload Accept=".png, .jpg" T="IBrowserFile" FilesChanged="OnUploadFileChanged">
+                                <ActivatorContent>
+                                    <MudFab Color="Color.Info"
+                                    Class="w-100"
+                                    Disabled="@(string.IsNullOrEmpty(QrCodeContent))"
+                                    StartIcon="@Icons.Material.Filled.Image"
+                                    Label="Bild hochladen" />
+                                </ActivatorContent>
+                            </MudFileUpload>
+                        </MudItem>
+
+                        <MudItem sm="12" md="6" Class="w-100">
+                            <MudFab Color="Color.Tertiary"
+                            StartIcon="@Icons.Material.Filled.Download"
+                            Label="QR Code herunterladen" 
+                            Class="w-100"
+                            Disabled="@(string.IsNullOrEmpty(QrCodeContent))"
+                            OnClick="async () => await DownloadQrCode()" />
+                        </MudItem>
+                    </MudGrid>
+
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+    </MudPaper>
+
+</MudStack>
+
+
+@code{
+    private string qrCodeContent = string.Empty;
+    public string QrCodeContent
+    {
+        get{ return qrCodeContent; }
+        set
+        {
+            qrCodeContent = value;
+            if(qrCodeContent.Length.Equals(0))
+            {
+                uploadImagePath = null;
+                foregroundColor = "#000000";
+                backgroundColor = "#ffffff";
+                StateHasChanged();
+            }
+        }
+    }
+    private MudColor foregroundColor = "#000000";
+    private MudColor backgroundColor = "#ffffff";
+    private string? uploadImagePath;
+
+
+    private async Task OnUploadFileChanged(IBrowserFile file)
+    {
+        try
+        {
+            // Convert uploaded image to base64
+            Stream fileStream = file.OpenReadStream();
+            MemoryStream memoryStream = new();
+            await fileStream.CopyToAsync(memoryStream);
+            string base64Image = Convert.ToBase64String(memoryStream.ToArray());
+
+            // Get base64 image data URI
+            uploadImagePath = $"data:image/{file.ContentType.Split('/')[1]};base64,{base64Image}";
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private async Task DownloadQrCode()
+    {
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("downloadQrCodeImage", "#qrCodeImage");
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+}
