@@ -2,6 +2,12 @@
 {
     public class Constants
     {
+        public class API
+        {
+            public const string BaseURL = "https://jonaswahleapi-bperagh9faf0e2g7.germanywestcentral-01.azurewebsites.net/api/genesis/";
+            public const string Token = "fe11876c567d42a99e5a8e9023f5f3a9";
+        }
+
         public class SVG
         {
             public const string Blazor = @"
