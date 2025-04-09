@@ -1,0 +1,49 @@
+﻿@inject ISnackbarService _snackbarService
+
+
+<MudStack Spacing="0">
+    <MudText Align="Align.Center" Color="Color.Tertiary" Typo="Typo.subtitle1">
+        <i>@randomQuote.Text</i>
+    </MudText>
+    <MudText Align="Align.Right" Color="Color.Tertiary" Typo="Typo.subtitle1">
+        <b>@randomQuote.Author</b>
+    </MudText>
+</MudStack>
+
+
+@code {
+    QuoteModel randomQuote = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            using (HttpClient httpClient = new HttpClient())
+            {
+                try
+                {
+                    // Make the request and get the response as a string
+                    HttpResponseMessage response = await httpClient.GetAsync("https://thequoteshub.com/api/random");
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    responseContent = responseContent.Trim().Trim('\'');
+
+                    // Deserialize the JSON response into an object
+                    var quoteData = JsonSerializer.Deserialize<QuoteModel>(responseContent);
+
+                    if (quoteData != null)
+                    {
+                        randomQuote.Text = quoteData.Text;
+                        randomQuote.Author = quoteData.Author;
+
+                        StateHasChanged();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _snackbarService.ShowError(ex.Message);
+                }
+            }
+        }
+    }
+
+}

@@ -29,24 +29,28 @@
             </MudText>
 
             <MudList T="object" Padding="true" Class="my-2">
+                <MudDivider DividerType="DividerType.Middle" />
                 <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/dotnet/csharp/">
                     <MudText Typo="Typo.h5">
                         <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-4" />
                         C# / .NET – Mein tägliches Werkzeug
                     </MudText>
                 </MudListItem>
+                <MudDivider DividerType="DividerType.Middle" />
                 <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/aspnet/core/blazor/hybrid">
                     <MudText Typo="Typo.h5">
                         <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-4" />
                         Blazor Hybrid – Für plattformübergreifende Apps
                     </MudText>
                 </MudListItem>
+                <MudDivider DividerType="DividerType.Middle" />
                 <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/aspnet/core/blazor">
                     <MudText Typo="Typo.h5">
                         <MudIcon Icon="@Icons.Material.Filled.Public" Class="mr-4" />
                         Blazor WASM & Server – Für Webseiten & progressive Webapps
                     </MudText>
                 </MudListItem>
+                <MudDivider DividerType="DividerType.Middle" />
             </MudList>
 
             <MudText Typo="Typo.h4" Class="mt-4">Abseits des Codes</MudText>
@@ -71,6 +75,10 @@
                     Online Tools ausprobieren
                 </MudLink>
             </MudStack>
+
+            <MudDivider Class="my-4" />
+
+            <RandomQuote />
 
         </MudStack>
     </MudPaper>
