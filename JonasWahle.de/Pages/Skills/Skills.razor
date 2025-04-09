@@ -2,13 +2,19 @@
     <MudStack Spacing="4">
         <MudText Typo="Typo.h4" Align="Align.Center">Kenntnisse & Fähigkeiten</MudText>
 
-        <MudCarousel Class="mud-width-full" Style="min-height:300px; height:auto;"  ShowArrows ShowBullets EnableSwipeGesture AutoCycle AutoCycleTime="@TimeSpan.FromSeconds(6)" TData="object">
-            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Cyan.Lighten3}")">
+        <MudCarousel Class="mud-width-full" Style="min-height:300px; height:fit-content;"  ShowArrows ShowBullets EnableSwipeGesture AutoCycle AutoCycleTime="@TimeSpan.FromSeconds(8)" TData="object">
+            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Teal.Lighten3}")">
                 <Card Title="Frontend" Skills="frontendSkills" />
             </MudCarouselItem>
-            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Teal.Lighten3}")">
+            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Cyan.Lighten3}")">
                 <Card Title="Backend" Skills="backendSkills" />
             </MudCarouselItem>
+            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Teal.Lighten3}")">
+                <Card Title="Programmierung" Skills="programmingSkills" />
+            </MudCarouselItem>
+        </MudCarousel>
+
+        <MudCarousel Class="mud-width-full" Style="min-height:300px; height:fit-content;" ShowArrows ShowBullets EnableSwipeGesture AutoCycle AutoCycleTime="@TimeSpan.FromSeconds(8)" TData="object">
             <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Cyan.Lighten3}")">
                 <Card Title="Game-Design" Skills="gamedevSkills" />
             </MudCarouselItem>
@@ -16,9 +22,6 @@
                 <Card Title="App Entwicklung" Skills="appSkills" />
             </MudCarouselItem>
             <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Cyan.Lighten3}")">
-                <Card Title="Programmierung" Skills="programmingSkills" />
-            </MudCarouselItem>
-            <MudCarouselItem Transition="Transition.Fade" Class="rounded" Style="@($"background-color:{Colors.Teal.Lighten3}")">
                 <Card Title="Datenbanken" Skills="databaseSkills" />
             </MudCarouselItem>
         </MudCarousel>
