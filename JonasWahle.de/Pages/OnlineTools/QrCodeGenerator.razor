@@ -21,17 +21,21 @@
             }
             else
             {
-                <MudStack Style="min-height: 250px;" AlignItems="AlignItems.Center" Justify="Justify.Center">
-                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Tertiary" />
-                    <MudText Align="Align.Center" Typo="Typo.caption"><i>Inhalt eingeben zum Generieren</i></MudText>
+                <MudStack Spacing="0" Style="min-height: 250px;" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="250px" Height="250px" />
+                    <MudText Align="Align.Center" Typo="Typo.caption"><i>Inhalt eingeben (Generiert automatisch)</i></MudText>
                 </MudStack>
+                    
             }
         </MudItem>
 
         @* Configuration *@
         <MudItem xs="12" sm="6">
             <MudStack Spacing="4">
-                <MudInput Required Immediate T="string" @bind-Value="QrCodeContent" Placeholder="Inhalt eingeben" Variant="Variant.Outlined" Lines="4" Clearable />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Align="Align.Right">@($"{QrCodeContent.Length} / 500")</MudText>
+                    <MudInput Required Immediate T="string" @bind-Value="QrCodeContent" Placeholder="Inhalt eingeben" Variant="Variant.Outlined" MaxLength="500" Lines="4" Clearable />
+                </MudStack>
 
                 <MudGrid Spacing="4">
                     <MudItem xs="6">
