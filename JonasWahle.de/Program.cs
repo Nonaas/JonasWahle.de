@@ -27,5 +27,6 @@ builder.Services.AddMudServices(config =>
 
 builder.Services.AddScoped<ISnackbarService, JonasWahle.de.Services.SnackbarService>();
 builder.Services.AddScoped<IClipboardService, ClipboardService>();
+builder.Services.AddScoped<IApiService, ApiService>();
 
 await builder.Build().RunAsync();
