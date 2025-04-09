@@ -30,6 +30,7 @@ a, .btn-link {
 }
 
 .footer-section {
+    padding-top: 5px;
     position: relative;
     text-align: center;
 }
