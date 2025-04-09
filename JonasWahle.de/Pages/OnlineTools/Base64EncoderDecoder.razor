@@ -1,0 +1,101 @@
+﻿@using System.Text
+@inject ISnackbarService _snackbarService
+@inject IClipboardService _clipboardService
+
+
+<MudPaper Class="pa-8 ma-1" Elevation="3">
+    <MudText Typo="Typo.h4" Class="mb-4">Base64 Kodierer / Dekodierer</MudText>
+
+    <MudTextField T="string" Immediate
+                Label="Klartext"
+                @bind-Value="readableText"
+                Lines="10"
+                Variant="Variant.Outlined"
+                FullWidth />
+
+    <MudStack Row Justify="Justify.Center" StretchItems="StretchItems.All" Class="w-100 pt-1 pb-2">
+        <MudButton Disabled="string.IsNullOrEmpty(readableText)" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="async () => await CopyToClipboard(readableText)">Klartext kopieren</MudButton>
+        <MudButton Disabled="string.IsNullOrEmpty(readableText)" Color="Color.Error" Variant="Variant.Filled" OnClick="() => readableText = string.Empty">Klartext Zurück&shy;setzen</MudButton>
+    </MudStack>
+    <MudDivider />
+    <MudStack Row Justify="Justify.Center" Class="w-100 pb-2 pt-2">
+        <MudButton Disabled="string.IsNullOrEmpty(readableText)" Color="Color.Success" Variant="Variant.Filled" OnClick="EncodeText">Klartext Kodieren</MudButton>
+        <MudButton Disabled="string.IsNullOrEmpty(base64Text)" Color="Color.Success" Variant="Variant.Filled" OnClick="DecodeBase64">Base64 Dekodieren</MudButton>
+    </MudStack>
+    <MudDivider />
+    <MudTextField T="string" Immediate
+                Label="Base64"
+                @bind-Value="@base64Text"
+                Lines="10"
+                Variant="Variant.Outlined" 
+                FullWidth />
+
+    <MudStack Row Justify="Justify.Center" StretchItems="StretchItems.All" Class="w-100 pt-1">
+        <MudButton Disabled="string.IsNullOrEmpty(base64Text)" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="async () => await CopyToClipboard(base64Text)">Base64 kopieren</MudButton>
+        <MudButton Disabled="string.IsNullOrEmpty(base64Text)" Color="Color.Error" Variant="Variant.Filled" OnClick="() => base64Text = string.Empty">Base64 Zurück&shy;setzen</MudButton>
+    </MudStack>
+</MudPaper>
+
+
+@code {
+    private string readableText = string.Empty;
+    private string base64Text = string.Empty;
+
+
+    private void EncodeText()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(readableText))
+            {
+                base64Text = Base64Encode(readableText);
+                _snackbarService.ShowSuccess("Kodieren erfolgreich!");
+            }
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private void DecodeBase64()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(base64Text))
+            {
+                readableText = Base64Decode(base64Text);
+                _snackbarService.ShowSuccess("Dekodieren erfolgreich!");
+            }
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private string Base64Encode(string readableText)
+    {
+        byte[] plainTextBytes = Encoding.UTF8.GetBytes(readableText);
+        return Convert.ToBase64String(plainTextBytes);
+    }
+
+    private string Base64Decode(string base64Data)
+    {
+        byte[] base64EncodedBytes = Convert.FromBase64String(base64Data);
+        return Encoding.UTF8.GetString(base64EncodedBytes);
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await _clipboardService.CopyToClipboard(text);
+            _snackbarService.ShowSuccess("Kopieren erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            _snackbarService.ShowError(ex.Message);
+        }
+    }
+}
