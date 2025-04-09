@@ -1,4 +1,6 @@
-﻿@inject IJSRuntime _jsRuntime
+﻿@implements IDisposable
+@inject IJSRuntime _jsRuntime
+@inject ISnackbarService _snackbarService
 
 
 <MudPaper Elevation="3" Class="p-3">
@@ -33,16 +35,31 @@
     <!-- For hCaptcha -->
     <script src="https://web3forms.com/client/script.js" async defer></script>
     <script>
+        let dotNetHelper = null;
+
+        function setDotNetReference(helper) {
+        dotNetHelper = helper;
+        }
+
         const form = document.getElementById('contact-form');
 
         form.addEventListener('submit', function (e) {
-
             const hCaptcha = form.querySelector('textarea[name=h-captcha-response]').value;
 
             if (!hCaptcha) {
                 e.preventDefault();
-                alert("Please fill out captcha field")
-                return
+
+                if (dotNetHelper) {
+                    dotNetHelper.invokeMethod('ShowCaptchaWarning');
+                } 
+                else {
+                    alert("Bitte Captcha-Feld ausfüllen.");
+                }
+            } 
+            else{
+                if (dotNetHelper) {
+                    dotNetHelper.invokeMethod('ShowCaptchaSuccess');
+                }
             }
         });
     </script>
@@ -50,12 +67,43 @@
 
 
 @code {
+    private DotNetObjectReference<ContactForm>? dotNetRef;
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Reload the captcha
-            await _jsRuntime.InvokeVoidAsync("reloadHCaptcha");
+            try
+            {
+                // Get and set obj ref
+                dotNetRef = DotNetObjectReference.Create(this);
+                await _jsRuntime.InvokeVoidAsync("setDotNetReference", dotNetRef);
+                // Reload the captcha
+                await _jsRuntime.InvokeVoidAsync("reloadHCaptcha");
+            }
+            catch (Exception ex)
+            {
+                _snackbarService.ShowError(ex.Message);
+            }
+            
         }
+    }
+
+    [JSInvokable]
+    public void ShowCaptchaWarning()
+    {
+        _snackbarService.ShowWarning("Bitte Captcha-Feld ausfüllen.");
+    }
+
+    [JSInvokable]
+    public void ShowCaptchaSuccess()
+    {
+        _snackbarService.ShowSuccess("Nachricht erfolgreich versendet!");
+    }
+
+    public void Dispose()
+    {
+        dotNetRef?.Dispose();
     }
 }
