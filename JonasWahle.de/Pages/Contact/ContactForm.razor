@@ -26,12 +26,11 @@
                     <!-- Privacy policy -->
                     <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
                         <MudCheckBox @bind-Value="acceptPrivacyPolicy" Required RequiredError="Benötigt" Size="Size.Large" id="privacyPolicyCheckbox" Color="Color.Tertiary"></MudCheckBox>
-                        <MudInputLabel Variant="Variant.Text" ForId="privacyPolicyCheckbox">
-                            Ich habe die 
+                        <MudInputLabel Variant="Variant.Text" ForId="privacyPolicyCheckbox" Class="text-break">
                             <MudLink Href="/datenschutz" Target="_blank" Color="Color.Info">
                                 Datenschutzerklärung
                             </MudLink>
-                            gelesen und akzeptiert.
+                            akzeptiert
                         </MudInputLabel>
                     </MudStack>
                 </MudItem>
