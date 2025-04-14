@@ -1,6 +1,6 @@
 ﻿@inject ISnackbarService _snackbarService
 
-
+<MudDivider Class="my-4" />
 <MudStack Spacing="0">
     <MudText Align="Align.Center" Color="Color.Tertiary" Typo="Typo.subtitle1">
         <i>@randomQuote.Text</i>
@@ -9,7 +9,7 @@
         <b>@randomQuote.Author</b>
     </MudText>
 </MudStack>
-
+<MudDivider Class="my-4" />
 
 @code {
     QuoteModel randomQuote = new();
@@ -23,7 +23,7 @@
                 try
                 {
                     // Make the request and get the response as a string
-                    HttpResponseMessage response = await httpClient.GetAsync("https://thequoteshub.com/api/random");
+                    HttpResponseMessage response = await httpClient.GetAsync("http://thequoteshub.com/api/random");
                     string responseContent = await response.Content.ReadAsStringAsync();
                     responseContent = responseContent.Trim().Trim('\'');
 
