@@ -1,0 +1,42 @@
+﻿<footer class="px-4">
+    <MudGrid Justify="Justify.SpaceBetween" Class="d-flex align-items-center">
+
+        <MudItem xs="12" sm="4" Class="text-start mb-2 mb-sm-0">
+            <MudLink Href="/impressum" Class="mx-2" Color="Color.Info" Typo="Typo.body1">
+                Impressum
+            </MudLink>
+            <MudLink Href="/datenschutz" Class="mx-2" Color="Color.Info" Typo="Typo.body1">
+                Datenschutz
+            </MudLink>
+        </MudItem>
+
+        <MudItem xs="12" sm="4" Class="text-center mb-2 mb-sm-0">
+            <MudText Typo="Typo.body2" Class="text-muted">
+                &copy; @DateTime.Now.Year<br />
+                Jonas Wahle
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="4" Class="text-end">
+            <MudIconButton Icon="@Icons.Custom.Brands.GitHub"
+                           Color="Color.Tertiary"
+                           Href="https://github.com/Nonaas"
+                           Target="_blank"
+                           Size="Size.Medium"
+                           Class="mx-1" />
+
+            <MudIconButton Icon="@Icons.Material.Filled.LocalCafe"
+                           Color="Color.Warning"
+                           Href="https://buymeacoffee.com/gamewhale"
+                           Target="_blank"
+                           Size="Size.Medium"
+                           Class="mx-1" />
+
+            <MudIconButton Icon="@Icons.Material.Filled.Email"
+                           Color="Color.Default"
+                           Href="/contact"
+                           Size="Size.Medium"
+                           Class="mx-1" />
+        </MudItem>
+    </MudGrid>
+</footer>
