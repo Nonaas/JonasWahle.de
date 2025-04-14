@@ -1,5 +1,4 @@
 ﻿@page "/visual-dataworld"
-@using JonasWahle.de.Models.API
 @inject IApiService _apiService
 @inject ISnackbarService _snackbarService
 
@@ -8,80 +7,40 @@
 <MudStack Spacing="5">
     <MudText Typo="Typo.h3" Align="Align.Center">Visuelle Datenwelt</MudText>
 
-    <MudStack Row AlignItems="AlignItems.End" StretchItems="StretchItems.End">
-        <MudStack Spacing="1">
-            <MudStack Spacing="0">
-                <MudInputLabel Variant="Variant.Text" ForId="tablecode">Tabellen-Code eingeben (von <MudLink Target="_blank" Href="https://www-genesis.destatis.de/datenbank/online/statistics">hier</MudLink>)</MudInputLabel>
-                <MudInputString Clearable Variant="Variant.Outlined" InputId="tablecode" Placeholder="Bsp.: 12612-0001" @bind-Value="tableCodeInput" />
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="4">
+            <TableCodeInput VisualDataWorldRef="this"
+            @bind-IsLoadingData="isLoadingData" />
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <TableCodeExamples />
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudStack Row Justify="Justify.FlexEnd">
+                <MudButton Color="Color.Tertiary"
+                Variant="Variant.Filled"
+                OnClick="async () => await TestApiConnectionAsync()">API Verbindung testen</MudButton>
             </MudStack>
-            <MudButton Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.Refresh" Style="font-size:large; max-height:fit-content;" Variant="Variant.Filled" OnClick="async () => await GetApiData()">Daten aktualisieren</MudButton>
-        </MudStack>
-
-        <TableCodeExamples />
-
-        <MudStack Row Justify="Justify.FlexEnd">
-            <MudButton Color="Color.Tertiary" Variant="Variant.Filled" OnClick="async () => await TestApiConnection()">API Verbindung testen</MudButton>
-        </MudStack>
-    </MudStack>
+        </MudItem>
+    </MudGrid>
 
     <MudExpansionPanels Elevation="3" MultiExpansion>
-        <MudExpansionPanel MaxHeight="500" Text="Tabelle" Expanded>
-            <MudTable Items="@tableData" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@isLoadingData">
-                <HeaderContent>
-                    @foreach (var header in tableHeaders)
-                    {
-                        <MudTh>@header</MudTh>
-                    }
-                </HeaderContent>
-                <RowTemplate>
-                    @foreach (var header in tableHeaders)
-                    {
-                        <MudTd DataLabel="@header">@context[header]</MudTd>
-                    }
-                </RowTemplate>
-                <LoadingContent>
-                    <MudProgressCircular Indeterminate Color="Color.Tertiary" Size="Size.Large" />
-                </LoadingContent>
-                <NoRecordsContent>
-                    <MudText Typo="Typo.body1" Align="Align.Center">Keine Daten vorhanden</MudText>
-                </NoRecordsContent>
-            </MudTable>
-        </MudExpansionPanel>
-        <MudExpansionPanel Text="Diagramm">
-            @if (tableData.Any())
+        <MudExpansionPanel MaxHeight="500" Text="@(tableData?.Title ?? "Tabelle")" Expanded>
+            @if (tableData != null)
             {
-                <MudSelect @bind-Value="chartType" Label="Diagramm-Typ auswählen" AdornmentIcon="@Icons.Material.Filled.BarChart" AdornmentColor="Color.Tertiary">
-                    <MudSelectItem Value="ChartType.Line">Liniendiagramm</MudSelectItem>
-                    <MudSelectItem Value="ChartType.Bar">Balkendiagramm</MudSelectItem>
-                    @* <MudSelectItem Value="ChartType.Pie">Kuchendiagramm</MudSelectItem>
-                    <MudSelectItem Value="ChartType.Donut">Donutdiagramm</MudSelectItem> *@
-                </MudSelect>
-
-                @switch (chartType)
-                {
-                    case ChartType.Line:
-                        <MudChart ChartType="ChartType.Line"
-                                  ChartSeries="@chartData"
-                                  XAxisLabels="@chartXAxisLabels"
-                                  Width="100%"
-                                  Height="100%"
-                                  ChartOptions="chartOptions"
-                                  AxisChartOptions="chartAxisOptions"
-                                  LegendPosition="Position.Top"
-                                  CanHideSeries />
-                        break;
-                    case ChartType.Bar:
-                        <MudChart ChartType="ChartType.Bar"
-                                  ChartSeries="@chartData"
-                                  XAxisLabels="@chartXAxisLabels"
-                                  Width="100%"
-                                  Height="100%"
-                                  ChartOptions="chartOptions"
-                                  AxisChartOptions="chartAxisOptions"
-                                  LegendPosition="Position.Top"
-                                  CanHideSeries />
-                        break;
-                }
+                <PanelDataTable TableData="tableData" @bind-IsLoadingData="isLoadingData" />
+            }
+            else
+            {
+                <MudText Typo="Typo.body1" Align="Align.Center">Keine Daten vorhanden</MudText>
+            }
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Diagramm" >
+            @if (tableData != null)
+            {
+                <PanelDataChart TableData="tableData" />
             }
             else
             {
@@ -89,28 +48,19 @@
             }
         </MudExpansionPanel>
     </MudExpansionPanels>
-
 </MudStack>
 
 
 @code {
-    List<ParsedTableRow> tableData = new();
-    List<string> tableHeaders = new();
-    string tableCodeInput = string.Empty;
-    bool isLoadingData = false;
+    private TableResponse? tableData;
+    private bool isLoadingData = false;
 
-    ChartType chartType = ChartType.Line;
-    List<ChartSeries> chartData = new();
-    string[] chartXAxisLabels = Array.Empty<string>();
-    ChartOptions chartOptions = new() { InterpolationOption=InterpolationOption.NaturalSpline };
-    AxisChartOptions chartAxisOptions = new() { MatchBoundsToSize=true, XAxisLabelRotation=45 };
-
-
-    private async Task TestApiConnection()
+    
+    private async Task TestApiConnectionAsync()
     {
         try
         {
-            bool success = await _apiService.TestConnection();
+            bool success = await _apiService.TestConnectionAsync();
 
             if (success)
             {
@@ -123,56 +73,36 @@
         }
     }
 
-    private async Task GetApiData()
+    public async Task GetApiDataAsync(string tableCode)
     {
         try
         {
-            RequestTableDataModel requestTableDataModel = new() { TableCode = tableCodeInput };
+            TableRequest requestTableDataModel = new() { TableCode = tableCode };
             isLoadingData = true;
-            tableData = await _apiService.RequestTableData(requestTableDataModel);
-
-            if (tableData.Count > 0)
-            {
-                tableHeaders = tableData[0].Keys.ToList();
-
-                // Erste Spalte enthält key
-                var xAxisKey = tableHeaders[0];
-                chartXAxisLabels = tableData.Select(row => row[xAxisKey]).ToArray();
-
-                // Restliche Keys sind Datenreihen
-                chartData = tableHeaders
-                    .Skip(1)
-                    .Select(header => new ChartSeries
-                        {
-                            Name = header,
-                            Data = tableData.Select(row =>
-                            {
-                                var val = row[header];
-                                return double.TryParse(val, out var result) ? result : 0;
-                            }).ToArray()
-                        })
-                    .ToList();
-
-                foreach (var item in chartData)
-                {
-                    item.ShowDataMarkers = true;
-                }
-            }
 
             StateHasChanged();
+
+            // Fetch new data
+            tableData = await _apiService.RequestTableDataAsync(requestTableDataModel);
 
             _snackbarService.ShowSuccess("Daten erfolgreich aktualisiert!");
         }
         catch (Exception ex)
         {
-            _snackbarService.ShowError(ex.Message);
+            if (ex.Message.Contains("Bad Request"))
+            {
+                _snackbarService.ShowInfo("Leider keine Daten gefunden 😕\n\nAnderen Tabellen-Code versuchen?");
+            }
+            else
+            {
+                _snackbarService.ShowError(ex.Message);
+            }
         }
         finally
         {
             isLoadingData = false;
+
+            StateHasChanged();
         }
     }
-
-    
-
 }

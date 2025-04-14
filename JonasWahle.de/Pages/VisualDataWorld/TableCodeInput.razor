@@ -1,0 +1,51 @@
+﻿<MudStack Spacing="1">
+    <MudStack Spacing="0">
+        <MudInputLabel Variant="Variant.Text" ForId="tablecode">
+            Tabellen-Code eingeben (von
+            <MudLink Target="_blank" Href="https://www-genesis.destatis.de/datenbank/online/statistics">hier</MudLink>)
+        </MudInputLabel>
+        <MudInputString Clearable Variant="Variant.Outlined" Immediate InputId="tablecode"
+                        Placeholder="Bsp.: 12612-0001" @bind-Value="tableCodeInput" />
+    </MudStack>
+    @if (!IsLoadingData)
+    {
+    <MudButton Disabled="IsLoadingData || string.IsNullOrEmpty(tableCodeInput)"
+               Color="Color.Tertiary"
+               StartIcon="@Icons.Material.Filled.Refresh"
+               Style="font-size:large; max-height:fit-content;"
+               Variant="Variant.Filled"
+               OnClick="async () => await RefreshData()">
+        Daten aktualisieren
+    </MudButton>
+    }
+    else
+    {
+        <MudPaper Style="height:43px; background-color:lightgray;">
+            <MudStack Row Style="height:100%;" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                <MudProgressCircular Indeterminate Color="Color.Dark" Size="Size.Small" />
+                <MudText Style="font-size:large;">
+                    BITTE WARTEN
+                </MudText>
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    public string tableCodeInput { get; set; } = string.Empty;
+    [Parameter]
+    public bool IsLoadingData { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsLoadingDataChanged { get; set; }
+    [Parameter]
+    public VisualDataWorld? VisualDataWorldRef { get; set; }
+
+
+    private async Task RefreshData()
+    {
+        if (VisualDataWorldRef != null)
+        {
+            await VisualDataWorldRef.GetApiDataAsync(tableCodeInput);
+        }
+    }
+}
