@@ -1,16 +1,17 @@
 ﻿using JonasWahle.de.Models.API;
 using JonasWahle.de.Utilities;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace JonasWahle.de.Services
 {
     public class ApiService(HttpClient _httpClient) : IApiService
     {
-        public async Task<bool> TestConnection()
+        public async Task<bool> TestConnectionAsync()
         {
             var payloadValues = new
             {
-                username = Constants.API.Token,
                 language = "de"
             };
 
@@ -48,7 +49,7 @@ namespace JonasWahle.de.Services
             }
         }
 
-        public async Task<List<ParsedTableRow>> RequestTableData(RequestTableDataModel requestModel)
+        public async Task<TableResponse> RequestTableDataAsync(TableRequest requestModel)
         {
             Dictionary<string, string> requestPayload = ConstructRequestPayload(requestModel);
 
@@ -61,36 +62,29 @@ namespace JonasWahle.de.Services
                     $"{Constants.API.BaseURL}fetch-table-data",
                     payloadContent);
 
-                // Ensure success
-                if (response.IsSuccessStatusCode)
-                {
-                    var data = await response.Content.ReadFromJsonAsync<List<ParsedTableRow>>();
+                response.EnsureSuccessStatusCode();
 
-                    if (data != null)
+                return await response.Content.ReadFromJsonAsync<TableResponse>(
+                    new JsonSerializerOptions
                     {
-                        return data;
-                    }
-                    else
-                    {
-                        throw new("Antwort konnte nicht verarbeitet werden.");
-                    }
-                }
-                else
-                {
-                    throw new("Fehler: " + response.ReasonPhrase);
-                }
+                        PropertyNameCaseInsensitive = true,
+                        NumberHandling = JsonNumberHandling.AllowReadingFromString
+                    }) ?? throw new Exception("Empty response");
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
-                throw new("Anfrage fehlgeschlagen: " + ex.Message);
+                throw new Exception($"API error: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception($"Parsing error: {ex.Message}");
             }
         }
 
-        private Dictionary<string, string> ConstructRequestPayload(RequestTableDataModel requestModel)
+        private Dictionary<string, string> ConstructRequestPayload(TableRequest requestModel)
         {
             Dictionary<string, string> payloadValues = new()
             {
-                { "token", Constants.API.Token },
                 { "tableCode", requestModel.TableCode }
             };
 
@@ -115,6 +109,33 @@ namespace JonasWahle.de.Services
             }
 
             return payloadValues;
+        }
+
+        public string FormatValue(object value, TableColumn column)
+        {
+            try
+            {
+                if (value is JsonElement element)
+                {
+                    return element.ValueKind switch
+                    {
+                        JsonValueKind.Number => element.GetDouble().ToString("N2"),
+                        JsonValueKind.String => element.GetString() ?? string.Empty,
+                        _ => "-"
+                    };
+                }
+
+                if (value is double num)
+                {
+                    return num.ToString("N2");
+                }
+
+                return value?.ToString() ?? "-";
+            }
+            catch
+            {
+                return "-";
+            }
         }
     }
 }

@@ -4,7 +4,8 @@ namespace JonasWahle.de.Services
 {
     public interface IApiService
     {
-        Task<List<ParsedTableRow>> RequestTableData(RequestTableDataModel requestModel);
-        Task<bool> TestConnection();
+        string FormatValue(object value, TableColumn column);
+        Task<TableResponse> RequestTableDataAsync(TableRequest requestModel);
+        Task<bool> TestConnectionAsync();
     }
 }
