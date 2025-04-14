@@ -29,12 +29,6 @@ a, .btn-link {
     min-height: 95vh;
 }
 
-.footer-section {
-    padding-top: 5px;
-    position: relative;
-    text-align: center;
-}
-
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }
