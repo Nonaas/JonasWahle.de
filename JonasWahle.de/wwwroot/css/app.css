@@ -22,6 +22,10 @@ a, .btn-link {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
+.topbar {
+    background-image: linear-gradient(to right, #80cbc4 0%, #80deea 100%);
+}
+
 .content {
     padding-top: 1.1rem;
     display: flex;
@@ -102,7 +106,7 @@ a, .btn-link {
 }
 
     .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
+        content: var(--blazor-load-percentage-text, "Wird geladen");
     }
 
 code {

@@ -20,8 +20,11 @@
         <MudItem xs="12" md="4">
             <MudStack Row Justify="Justify.FlexEnd">
                 <MudButton Color="Color.Tertiary"
-                Variant="Variant.Filled"
-                OnClick="async () => await TestApiConnectionAsync()">API Verbindung testen</MudButton>
+                           Disabled="isTestingConnection"
+                           Variant="Variant.Filled"
+                           OnClick="async () => await TestApiConnectionAsync()">
+                    API Verbindung testen
+                </MudButton>
             </MudStack>
         </MudItem>
     </MudGrid>
@@ -54,10 +57,13 @@
 @code {
     private TableResponse? tableData;
     private bool isLoadingData = false;
+    private bool isTestingConnection = false;
 
     
     private async Task TestApiConnectionAsync()
     {
+        isTestingConnection = true;
+
         try
         {
             bool success = await _apiService.TestConnectionAsync();
@@ -70,6 +76,10 @@
         catch (Exception ex)
         {
             _snackbarService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isTestingConnection = false;
         }
     }
 
