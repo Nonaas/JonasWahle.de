@@ -1,21 +1,9 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavigationMenu />
-    </div>
 
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
 
-        <Footer />
-
-        <MudScrollToTop>
-            <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
-        </MudScrollToTop>
-    </main>
-</div>
+<NavigationDrawer>
+    @Body
+</NavigationDrawer>
 
 
 @* Required for MudBlazor *@
