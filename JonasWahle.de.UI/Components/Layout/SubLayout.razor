@@ -20,17 +20,25 @@
     </MudMainContent>
 
     <MudAppBar Elevation="5" Class="d-flex justify-content-center" Dense="true" Bottom="true" Fixed="true" Color="Color.Primary">
-        <MudStack Row>
-            <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
-            <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
-        </MudStack>
+        <MudHidden Breakpoint="@Breakpoint.SmAndDown">
+            <MudStack Row>
+                <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
+                <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
+            </MudStack>
+        </MudHidden>
+        <MudHidden Breakpoint="@Breakpoint.MdAndUp">
+            <MudStack Spacing="0">
+                <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
+                <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
+            </MudStack>
+        </MudHidden>
         <MudSpacer />
         <MudStack Spacing="0">
             <MudText Align="Align.Center">© 2025</MudText>
             <MudText Align="Align.Center">Jonas Wahle</MudText>
         </MudStack>
         <MudSpacer />
-        <MudStack Row>
+        <MudStack Row Spacing="2">
             <MudTooltip Arrow Placement="Placement.Top" Text="LinkedIn">
                 <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" Variant="Variant.Filled" Href="https://www.linkedin.com/in/jonas-wahle-13b07a24a/" Target="_blank" />
             </MudTooltip>
