@@ -1,5 +1,5 @@
 using MudBlazor.Services;
-using UI.Components;
+using JonasWahle.de.UI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
