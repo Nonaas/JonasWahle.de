@@ -1,0 +1,36 @@
+﻿@inherits LayoutComponentBase
+
+
+<SubLayout>
+    <main style="padding: 20px; overflow-x:hidden">
+        @Body
+    </main>
+</SubLayout>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@* MudBlazor *@
+<MudThemeProvider Theme="_customTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
+@code {
+    MudTheme _customTheme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = new("#13263c"),
+            Secondary = new("#ffffff")
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten1
+        }
+    };
+}

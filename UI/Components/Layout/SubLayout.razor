@@ -1,0 +1,60 @@
+﻿@using UI.Components.Pages
+
+
+<MudLayout>
+    <MudAppBar Elevation="5" Dense="true" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudSpacer />
+    </MudAppBar>
+    
+    <MudHidden Breakpoint="@Breakpoint.SmAndDown">
+        <MudDrawer @bind-Open="@_isDrawerOpen" ClipMode="DrawerClipMode.Always" Breakpoint="@Breakpoint.Md" Elevation="2" Variant="@DrawerVariant.Mini">
+            <NavMenu />
+        </MudDrawer>
+    </MudHidden>
+    <MudHidden Breakpoint="@Breakpoint.MdAndUp">
+        <MudDrawer @bind-Open="@_isDrawerOpen" ClipMode="DrawerClipMode.Always" Breakpoint="@Breakpoint.Md" Elevation="2" Variant="@DrawerVariant.Temporary">
+            <NavMenu />
+        </MudDrawer>
+    </MudHidden>
+
+    <MudMainContent>
+        @ChildContent
+    </MudMainContent>
+
+    <MudAppBar Elevation="5" Class="d-flex justify-content-center" Dense="true" Bottom="true" Fixed="true" Color="Color.Primary">
+        <MudStack Row>
+            <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
+            <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
+        </MudStack>
+        <MudSpacer />
+        <MudStack Spacing="0">
+            <MudText Align="Align.Center">© 2025</MudText>
+            <MudText Align="Align.Center">Jonas Wahle</MudText>
+        </MudStack>
+        <MudSpacer />
+        <MudStack Row>
+            <MudTooltip Arrow Placement="Placement.Top" Text="LinkedIn">
+                <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" Variant="Variant.Filled" Href="https://www.linkedin.com/in/jonas-wahle-13b07a24a/" Target="_blank" />
+            </MudTooltip>
+            <MudTooltip Arrow Placement="Placement.Top" Text="GitHub">
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" Variant="Variant.Filled" Href="https://github.com/Nonaas" Target="_blank" />
+            </MudTooltip>
+            <MudTooltip Arrow Placement="Placement.Top" Text="Kauf mir einen Kaffee 😉">
+                <MudIconButton Icon="@Icons.Material.Filled.Coffee" Color="Color.Primary" Variant="Variant.Filled" Href="https://buymeacoffee.com/gamewhale" Target="_blank" />
+            </MudTooltip>
+        </MudStack>
+    </MudAppBar>
+</MudLayout>
+
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool _isDrawerOpen = false;
+
+    private void ToggleDrawer()
+    {
+        _isDrawerOpen = !_isDrawerOpen;
+    }
+}
