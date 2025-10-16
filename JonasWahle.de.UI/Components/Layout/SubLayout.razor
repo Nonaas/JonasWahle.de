@@ -1,4 +1,9 @@
-﻿<MudLayout>
+﻿@using JonasWahle.de.UI.Components.Dialogs
+@inject ICookieService CookieService
+@inject IDialogService DialogService
+
+
+<MudLayout>
     <MudAppBar Elevation="5" Dense="true" Color="Color.Primary">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
         <MudSpacer />
@@ -20,24 +25,15 @@
     </MudMainContent>
 
     <MudAppBar Elevation="5" Class="d-flex justify-content-center" Dense="true" Bottom="true" Fixed="true" Color="Color.Primary">
-        <MudHidden Breakpoint="@Breakpoint.SmAndDown">
-            <MudStack Row>
-                <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
-                <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
-            </MudStack>
-        </MudHidden>
-        <MudHidden Breakpoint="@Breakpoint.MdAndUp">
+        <MudLink Color="Color.Secondary" OnClick="async () => await RemoveCookieConsentAsync()">Cookie-Einwilligung entfernen</MudLink>
+        <MudSpacer />
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudStack Spacing="0">
-                <MudLink Color="Color.Secondary" Href="datenschutz">Datenschutz</MudLink>
-                <MudLink Color="Color.Secondary" Href="impressum">Impressum</MudLink>
+                <MudText Align="Align.Center">© 2025</MudText>
+                <MudText Align="Align.Center">Jonas Wahle</MudText>
             </MudStack>
+            <MudSpacer />
         </MudHidden>
-        <MudSpacer />
-        <MudStack Spacing="0">
-            <MudText Align="Align.Center">© 2025</MudText>
-            <MudText Align="Align.Center">Jonas Wahle</MudText>
-        </MudStack>
-        <MudSpacer />
         <MudStack Row Spacing="2">
             <MudTooltip Arrow Placement="Placement.Top" Text="LinkedIn">
                 <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" Variant="Variant.Filled" Href="https://www.linkedin.com/in/jonas-wahle-13b07a24a/" Target="_blank" />
@@ -58,8 +54,40 @@
 
     private bool _isDrawerOpen = false;
 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            string? hasConsent = await CookieService.GetCookieAsync(Constants.CookieKeys.CookieConsent);
+
+            if (string.IsNullOrEmpty(hasConsent?.Trim()))
+            {
+                await OpenCookieDialogAsync();
+            }            
+        }
+    }
+
+    private Task OpenCookieDialogAsync()
+    {
+        DialogOptions options = new()
+            {
+                CloseOnEscapeKey = false,
+                BackdropClick = false
+            };
+
+        return DialogService.ShowAsync<CookieDialog>(null, options: options);
+    }
+
+    private async Task RemoveCookieConsentAsync()
+    {
+        await CookieService.DeleteCookieAsync(Constants.CookieKeys.CookieConsent);
+        await OpenCookieDialogAsync();
+    }
+
     private void ToggleDrawer()
     {
         _isDrawerOpen = !_isDrawerOpen;
     }
+
 }
