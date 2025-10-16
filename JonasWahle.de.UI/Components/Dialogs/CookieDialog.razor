@@ -1,0 +1,45 @@
+﻿@inject IHttpContextAccessor Http
+@inject IJSRuntime JSRuntime
+@inject ICookieService CookieService
+
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Align="Align.Center">
+            Cookie-Einwilligung
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        <MudText Typo="Typo.body1" GutterBottom="true">
+            Diese Webseite verwendet Cookies, um die Benutzererfahrung zu verbessern. 
+            Sollten Sie der Verwendung nicht zustimmen, sind bestimmte Funktionen möglicherweise nur eingeschränkt oder gar nicht verfügbar.
+        </MudText>
+        <MudText Typo="Typo.body1" GutterBottom="true">
+            Sie können Ihre Auswahl jederzeit in der Fußleiste zurücksetzen.
+        </MudText>
+        <MudText Typo="Typo.body1" GutterBottom="true" Class="mt-5">
+            Stimmen Sie der Verwendung von Cookies zu?
+        </MudText>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="RejectCookieConsent" Variant="Variant.Filled">Ablehnen</MudButton>
+        <MudButton OnClick="async () => await ConfirmCookieConsentAsync()" Variant="Variant.Filled" Color="Color.Primary">Zustimmen</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+
+    private void RejectCookieConsent() => MudDialog?.Cancel();
+
+    private async Task ConfirmCookieConsentAsync()
+    {
+        await CookieService.SetCookieAsync(Constants.CookieKeys.CookieConsent, "true", 365);
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+}
