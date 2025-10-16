@@ -1,7 +1,92 @@
 ﻿@page "/ueber-mich"
-
 <PageTitle>Über mich</PageTitle>
 
-<h1>
-    Über mich
-</h1>
+
+<MudStack Spacing="4" Class="mb-3">
+    <MudStack >
+        <MudText Typo="Typo.h4">Über mich</MudText>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudAvatar Size="Size.Large" Elevation="3">
+                <MudImage Src="/img/jonas-wahle.webp" Alt="Jonas Wahle" />
+            </MudAvatar>
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h5">Hey, ich bin Jonas!</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Full-Stack-Entwickler | Code-Enthusiast | Hobby-Spieleentwickler
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudStack>
+
+    <MudText Typo="Typo.body1">
+        Seit 2021 entwickle ich Software, die nicht nur funktioniert, sondern auch Freude macht –
+        ob plattform&shy;übergreifende Anwendungen mit C# und Blazor, Lösungen für komplexe ERP-Systeme oder Software für den B2B-Bereich.
+    </MudText>
+
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        <i>"Code sollte Menschen unterstützen, ohne sie zu verwirren."</i>
+    </MudText>
+
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h6">Warum ich Code liebe</MudText>
+        <MudText Typo="Typo.body1">
+            Weil ich gerne Dinge baue, die bleiben. Meine Zeit im sozialen Bereich hat mir gezeigt,
+            wie wichtig klare Kommunikation und Teamwork sind – heute setze ich das beruflich sowie privat in vielseitigen agilen Projekten um.
+        </MudText>
+    </MudStack>
+
+    <MudList T="object" Padding="true">
+        <MudDivider DividerType="DividerType.Middle" />
+        <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/dotnet/csharp/">
+            <MudText Typo="Typo.body1">
+                <MudIcon Icon="@Icons.Material.Filled.Code" Color="Color.Primary" Class="mb-1 me-2" />
+                <MudText Inline="true" Typo="Typo.body1" Color="Color.Secondary"><strong>C# / .NET</strong></MudText>
+                <MudText Typo="Typo.body1" Color="Color.Primary">Mein tägliches Werkzeug</MudText>
+            </MudText>
+        </MudListItem>
+        <MudDivider DividerType="DividerType.Middle" />
+        <MudListItem Target="_blank" Href="https://learn.microsoft.com/de-de/aspnet/core/blazor/?view=aspnetcore-9.0">
+            <MudText Typo="Typo.body1">
+                <MudIcon Icon="@Icons.Material.Filled.Devices" Color="Color.Primary" Class="mb-1 me-2" />
+                <MudText Inline="true" Typo="Typo.body1" Color="Color.Secondary"><strong>Blazor</strong></MudText>
+                <MudText Typo="Typo.body1" Color="Color.Primary">Für plattformübergreifende Anwendungen</MudText>
+            </MudText>
+        </MudListItem>
+        <MudDivider DividerType="DividerType.Middle" />
+        <MudListItem Target="_blank" Href="https://godotengine.org/de/">
+            <MudText Typo="Typo.body1">
+                <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Color="Color.Primary" Class="mb-1 me-2" />
+                <MudText Inline="true" Typo="Typo.body1" Color="Color.Secondary"><strong>Godot Engine</strong></MudText>
+                <MudText Typo="Typo.body1" Color="Color.Primary">Für Spielentwicklung in 2D & 3D</MudText>
+            </MudText>
+        </MudListItem>
+        <MudDivider DividerType="DividerType.Middle" />
+    </MudList>
+
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h6" Class="mt-4">Abseits der IDE</MudText>
+        <MudText Typo="Typo.body1">
+            Wenn ich nicht gerade programmiere, findest du mich oft an der Boulder&shy;wand oder auf gemütlichen Radtouren durch die Gegend.
+            Mehr dazu verrate ich dir gerne persönlich!
+        </MudText>
+    </MudStack>
+    
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h6">Lass uns in Kontakt treten!</MudText>
+
+        <MudStack Justify="Justify.Center" Spacing="2" >
+            <MudLink Typo="Typo.body1" Href="/kontakt" Class="mx-2" Color="Color.Secondary">
+                Schreibe mir eine Nachricht
+            </MudLink>
+
+            <MudLink Typo="Typo.body1" Href="/downloads" Class="mx-2" Color="Color.Secondary">
+                Anwendungen zum Herunterladen entdecken
+            </MudLink>
+
+            <MudLink Typo="Typo.body1" Href="/online-werkzeuge" Class="mx-2" Color="Color.Secondary">
+                Online-Werkzeuge ausprobieren
+            </MudLink>
+        </MudStack>
+    </MudStack>
+
+</MudStack>
