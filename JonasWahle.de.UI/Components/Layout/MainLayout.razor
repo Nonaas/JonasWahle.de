@@ -16,7 +16,7 @@
 @* MudBlazor *@
 <MudThemeProvider Theme="_customTheme" />
 <MudPopoverProvider />
-<MudDialogProvider />
+<MudDialogProvider BackgroundClass="blurred-backdrop" />
 <MudSnackbarProvider />
 
 
@@ -26,11 +26,15 @@
         PaletteLight = new PaletteLight()
         {
             Primary = new("#13263c"),
-            Secondary = new("#ffffff")
+            Secondary = new("#ee595b"),
+            Tertiary = new("#ffffff")
         },
         PaletteDark = new PaletteDark()
         {
-            Primary = Colors.Blue.Lighten1
+            Primary = new("#ee595b"),
+            Secondary = new("#13263c"),
+            Tertiary = new("#ffffff")
         }
     };
+
 }
