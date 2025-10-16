@@ -1,20 +1,25 @@
-using MudBlazor.Services;
+using JonasWahle.de.Domain.Interfaces;
+using JonasWahle.de.Domain.Services;
 using JonasWahle.de.UI.Components;
+using MudBlazor.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.Expiration = TimeSpan.Zero;
 });
 
-builder.Services.AddMudServices();
+// Add base services
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
-var app = builder.Build();
+// Add application services
+builder.Services.AddMudServices();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICookieService, CookieService>();
+
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
