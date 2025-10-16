@@ -1,17 +1,25 @@
 ﻿@page "/"
-
 <PageTitle>Start</PageTitle>
 
-<h1>
-    Start
-</h1>
-<p>
-    Welcome to <span class="text-primary">jonaswahle.de</span>
-</p>
 
-<h3>
-    Rendermode
-</h3>
-<p>
-    @RendererInfo.Name @(RendererInfo.IsInteractive ? "(interactive)" : "(not interactive)")
-</p>
+<MudStack Spacing="4" Class="mb-3">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h4">Jonas Wahle</MudText>
+        <MudText Typo="Typo.h5">Software&shy;entwickler</MudText>
+    </MudStack>
+
+    <MudText Typo="Typo.body1" GutterBottom="true">
+        Herzlich willkommen auf <strong>jonaswahle.de</strong>!
+    </MudText>
+
+    <MudText Typo="Typo.body1" GutterBottom="true">
+        Schauen Sie sich gerne um und navigieren Sie durch die Seiten, um mehr über mich und meine Projekte zu erfahren.
+    </MudText>
+
+    <MudText Typo="Typo.body1" GutterBottom="true">
+        Verwenden Sie gerne eines der von mir entwickelten <MudLink Underline="Underline.Hover" Color="Color.Secondary" Href="/online-werkzeuge" Typo="Typo.body1">Online-Werkzeuge</MudLink>,
+        werfen Sie einen Blick auf die verfügbaren <MudLink Underline="Underline.Hover" Color="Color.Secondary" Href="/downloads" Typo="Typo.body1">Downloads</MudLink>,
+        oder kontaktieren Sie mich über das <MudLink Underline="Underline.Hover" Color="Color.Secondary" Href="/kontakt" Typo="Typo.body1">Kontaktformular</MudLink>.
+    </MudText>
+
+</MudStack>
