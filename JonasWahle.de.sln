@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.UI", "JonasWahle.de.UI\JonasWahle.de.UI.csproj", "{9A6A1382-6A9C-454F-B533-CA34765BC7F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.Domain", "JonasWahle.de.Domain\JonasWahle.de.Domain.csproj", "{B29349D6-2B23-41BE-BB37-46DC2ACDF427}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9A6A1382-6A9C-454F-B533-CA34765BC7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A6A1382-6A9C-454F-B533-CA34765BC7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A6A1382-6A9C-454F-B533-CA34765BC7F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
