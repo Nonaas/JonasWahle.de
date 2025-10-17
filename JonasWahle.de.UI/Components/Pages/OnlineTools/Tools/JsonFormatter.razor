@@ -1,0 +1,101 @@
+﻿@using System.Text.Json
+@using JonasWahle.de.UI.Interfaces
+@inject ISnackbarService SnackbarService
+@inject IClipboardService ClipboardService
+
+
+<MudTextField T="string" Immediate
+                Label="JSON-Rohdaten"
+                @bind-Value="_inputJson"
+                Lines="12"
+                Variant="Variant.Outlined"
+                Placeholder="@("{ \"Beispiel\": true }")"
+                FullWidth />
+
+<MudGrid Class="py-2" Justify="Justify.Center">
+    <MudItem xs="6" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_inputJson)" Color="Color.Success" Variant="Variant.Filled" OnClick="FormatJson">Forma&shy;tieren</MudButton>
+    </MudItem>
+    <MudItem xs="6" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_inputJson) && string.IsNullOrEmpty(_formattedJson)" Color="Color.Error" Variant="Variant.Filled" OnClick="ClearJson">Zurück&shy;setzen</MudButton>
+    </MudItem>
+    <MudItem xs="12" sm="4" md="4" Class="d-flex justify-center">
+        <MudFileUpload Class="w-100" Accept=".json" T="IBrowserFile" FilesChanged="OnUploadFileChangedAsync">
+            <ActivatorContent>
+                <MudButton Class="w-100" Color="Color.Primary" Variant="Variant.Filled">JSON Datei hochladen</MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+    </MudItem>
+</MudGrid>
+
+<MudTextField T="string" Immediate
+                Label="Formatiertes JSON"
+                Value="@_formattedJson"
+                Lines="12"
+                ReadOnly
+                FullWidth
+                Variant="Variant.Filled" />
+
+<MudGrid Class="py-2" Justify="Justify.Center">
+    <MudItem xs="12" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_formattedJson)" Color="Color.Primary" Variant="Variant.Filled" OnClick="CopyJsonAsync">Formatiertes JSON kopieren</MudButton>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private string _inputJson = string.Empty;
+    private string _formattedJson = string.Empty;
+
+
+    private void FormatJson()
+    {
+        try
+        {
+            JsonElement jsonElement = JsonSerializer.Deserialize<JsonElement>(_inputJson);
+            _formattedJson = JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions { WriteIndented = true });
+            SnackbarService.ShowSuccess("Formatieren erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Ungültiges JSON: {ex.Message}");
+        }
+    }
+
+    private void ClearJson()
+    {
+        _inputJson = string.Empty;
+        _formattedJson = string.Empty;
+    }
+
+    private async Task CopyJsonAsync()
+    {
+        try
+        {
+            await ClipboardService.CopyToClipboardAsync(_formattedJson);
+            SnackbarService.ShowSuccess("Kopieren erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+
+    }
+
+    private async Task OnUploadFileChangedAsync(IBrowserFile file)
+    {
+        try
+        {
+            using StreamReader reader = new StreamReader(file.OpenReadStream());
+            _inputJson = await reader.ReadToEndAsync();
+
+            FormatJson();
+
+            SnackbarService.ShowSuccess("Hochladen erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+}

@@ -1,0 +1,134 @@
+﻿@using JonasWahle.de.UI.Interfaces
+@using MudBlazor.Utilities
+@using PinguApps.Blazor.QRCode
+@inject IJSRuntime JsRuntime
+@inject ISnackbarService SnackbarService
+
+
+<MudGrid Spacing="5">
+
+    @* QR code image *@
+    <MudItem xs="12" sm="6" Class="d-flex justify-content-center align-items-center">
+        @if (!string.IsNullOrEmpty(QrCodeContent))
+        {
+            <QRCode Id="qrCodeImage" Data="@QrCodeContent"
+                    Size="250px"
+                    ForeColor="@_foregroundColor.ToString()"
+                    BackColor="@_backgroundColor.ToString()"
+                    Image="@_imageDataUri"
+                    ErrorCorrection="ErrorCorrection.High" />
+        }
+        else
+        {
+            <MudStack Spacing="0" Style="min-height: 250px;" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="250px" Height="250px" />
+                <MudText Align="Align.Center" Typo="Typo.caption"><i>Inhalt eingeben (Generiert automatisch)</i></MudText>
+            </MudStack>
+
+        }
+    </MudItem>
+
+    @* Configuration *@
+    <MudItem xs="12" sm="6">
+        <MudStack Spacing="4">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.caption" Align="Align.Right">@($"{QrCodeContent.Length} / 500")</MudText>
+                <MudInput Required Immediate T="string" @bind-Value="QrCodeContent" Placeholder="Inhalt eingeben" Variant="Variant.Outlined" MaxLength="500" Lines="4" Clearable />
+            </MudStack>
+
+            <MudGrid Spacing="4">
+                <MudItem xs="6">
+                    <MudColorPicker Label="Vordergrundfarbe" ColorPickerView="ColorPickerView.Palette" @bind-Value="_foregroundColor" AnchorOrigin="Origin.TopLeft" />
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudColorPicker Label="Hintergrundfarbe" ColorPickerView="ColorPickerView.Palette" @bind-Value="_backgroundColor" AnchorOrigin="Origin.TopRight" />
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Spacing="4">
+                <MudItem sm="12" md="6" Class="w-100">
+                    <MudFileUpload Accept=".png, .jpg" T="IBrowserFile" FilesChanged="OnUploadFileChangedAsync">
+                        <ActivatorContent>
+                            <MudFab Color="Color.Primary"
+                                    Class="w-100"
+                                    Disabled="@(string.IsNullOrEmpty(QrCodeContent))"
+                                    StartIcon="@Icons.Material.Filled.Image"
+                                    Label="Bild hochladen" />
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </MudItem>
+
+                <MudItem sm="12" md="6" Class="w-100">
+                    <MudFab Color="Color.Primary"
+                            StartIcon="@Icons.Material.Filled.Download"
+                            Label="QR Code herunterladen"
+                            Class="w-100"
+                            Disabled="@(string.IsNullOrEmpty(QrCodeContent))"
+                            OnClick="async () => await DownloadQrCodeAsync()" />
+                </MudItem>
+            </MudGrid>
+
+        </MudStack>
+    </MudItem>
+
+</MudGrid>
+
+
+@code {
+    private string _qrCodeContent = string.Empty;
+    public string QrCodeContent
+    {
+        get { return _qrCodeContent; }
+        set
+        {
+            _qrCodeContent = value;
+            if (_qrCodeContent.Length.Equals(0))
+            {
+                _imageDataUri = null;
+                _foregroundColor = "#000000";
+                _backgroundColor = "#ffffff";
+                StateHasChanged();
+            }
+        }
+    }
+    private MudColor _foregroundColor = "#000000";
+    private MudColor _backgroundColor = "#ffffff";
+    private string? _imageDataUri;
+
+
+    private async Task OnUploadFileChangedAsync(IBrowserFile file)
+    {
+        try
+        {
+            // Convert uploaded image to base64
+            Stream fileStream = file.OpenReadStream();
+            MemoryStream memoryStream = new();
+            await fileStream.CopyToAsync(memoryStream);
+            string base64Image = Convert.ToBase64String(memoryStream.ToArray());
+
+            // Get base64 image data URI
+            _imageDataUri = $"data:image/{file.ContentType.Split('/')[1]};base64,{base64Image}";
+
+            SnackbarService.ShowSuccess("Hochladen erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private async Task DownloadQrCodeAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("downloadQrCodeImage", "#qrCodeImage");
+
+            SnackbarService.ShowSuccess("Herunterladen erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Ein unerwarteter Fehler ist aufgetreten: {ex.Message}");
+        }
+    }
+}

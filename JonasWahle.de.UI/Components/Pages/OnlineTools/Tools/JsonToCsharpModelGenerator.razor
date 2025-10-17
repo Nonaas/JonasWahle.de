@@ -1,0 +1,180 @@
+﻿@using System.Text.Json
+@using System.Text.Json.Nodes
+@using JonasWahle.de.UI.Interfaces
+@using System.Text
+@inject ISnackbarService SnackbarService
+@inject IClipboardService ClipboardService
+
+
+<MudTextField T="string" Immediate
+                Label="JSON-Rohdaten"
+                @bind-Value="_inputJson"
+                Lines="12"
+                Variant="Variant.Outlined"
+                Placeholder="@("{ \"name\": \"John Doe\", \"age\": 42 }")"
+                FullWidth />
+
+<MudGrid Class="py-2" Justify="Justify.Center">
+    <MudItem xs="6" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_inputJson)" Color="Color.Success" Variant="Variant.Filled" OnClick="GenerateCSharpModel">C# Model erzeugen</MudButton>
+    </MudItem>
+    <MudItem xs="6" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_inputJson) && string.IsNullOrEmpty(_csharpModel)" Color="Color.Error" Variant="Variant.Filled" OnClick="ClearJson">Zurück&shy;setzen</MudButton>
+    </MudItem>
+    <MudItem xs="12" sm="4" md="4" Class="d-flex justify-center">
+        <MudFileUpload Class="w-100" Accept=".json" T="IBrowserFile" FilesChanged="OnUploadFileChangedAsync">
+            <ActivatorContent>
+                <MudButton Class="w-100" Color="Color.Primary" Variant="Variant.Filled">JSON Datei hochladen</MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+    </MudItem>
+</MudGrid>
+
+<MudTextField T="string" Immediate
+                Label="C# Model"
+                Value="@_csharpModel"
+                Lines="12"
+                ReadOnly
+                FullWidth
+                Variant="Variant.Filled" />
+
+<MudGrid Class="py-2" Justify="Justify.Center">
+    <MudItem xs="12" sm="4" md="4" Class="d-flex justify-center">
+        <MudButton Class="w-100" Disabled="string.IsNullOrEmpty(_csharpModel)" Color="Color.Primary" Variant="Variant.Filled" OnClick="CopyModelToClipboardAsync">Model kopieren</MudButton>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private string _inputJson = string.Empty;
+    private string _csharpModel = string.Empty;
+
+
+    private void GenerateCSharpModel()
+    {
+        try
+        {
+            JsonNode? jsonNode = JsonNode.Parse(_inputJson);
+            _csharpModel = GenerateCSharpFromJson(jsonNode, "Root");
+            SnackbarService.ShowSuccess("C# Modell generiert!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Ungültiges JSON: {ex.Message}");
+        }
+    }
+
+    private void ClearJson()
+    {
+        _inputJson = string.Empty;
+        _csharpModel = string.Empty;
+    }
+
+    private async Task OnUploadFileChangedAsync(IBrowserFile file)
+    {
+        try
+        {
+            using StreamReader reader = new (file.OpenReadStream());
+            _inputJson = await reader.ReadToEndAsync();
+            GenerateCSharpModel();
+            SnackbarService.ShowSuccess("Hochladen erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private async Task CopyModelToClipboardAsync()
+    {
+        try
+        {
+            await ClipboardService.CopyToClipboardAsync(_csharpModel);
+            SnackbarService.ShowSuccess("Kopieren erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private string GenerateCSharpFromJson(JsonNode? node, string className)
+    {
+        if (node == null)
+        {
+            return string.Empty;            
+        } 
+
+        StringBuilder sb = new();
+        sb.AppendLine($"public class {className}");
+        sb.AppendLine("{");
+
+        if (node is JsonObject jsonObject)
+        {
+            foreach (KeyValuePair<string, JsonNode?> property in jsonObject)
+            {
+                string propertyName = Extensions.ToPascalCase(property.Key);
+                string propertyType = GetCSharpType(property.Value);
+                sb.AppendLine($"    public {propertyType} {propertyName} {{ get; set; }}");
+            }
+        }
+
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+
+    private string GetCSharpType(JsonNode? node)
+    {
+        switch (node)
+        {
+            case JsonValue v when v.TryGetValue(out string? _):
+                return "string";
+
+            case JsonValue v when v.TryGetValue(out int _):
+                return "int";
+
+            case JsonValue v when v.TryGetValue(out double _):
+                return "double";
+
+            case JsonValue v when v.TryGetValue(out bool _):
+                return "bool";
+
+            case JsonArray jsonArray:
+                if (jsonArray.Count == 0)
+                {
+                    return "List<object>";                    
+                }
+
+                List<string> elementTypes = jsonArray
+                    .Select(GetCSharpType)
+                    .Distinct()
+                    .ToList();
+
+                string listType = elementTypes.Count == 1 ? elementTypes[0] : "object";
+                return $"List<{listType}>";
+
+            case JsonObject jsonObject:
+                if (jsonObject.Count == 0)
+                {
+                    return "Dictionary<string, object>";                    
+                }
+
+                List<string> valueTypes = jsonObject
+                    .Select(kvp => kvp.Value)
+                    .Where(v => v is JsonValue)
+                    .Select(GetCSharpType)
+                    .Distinct()
+                    .ToList();
+
+                if (valueTypes.Count == 1)
+                {
+                    return $"Dictionary<string, {valueTypes[0]}>";
+                }
+
+                return "object";
+
+            default:
+                return "string";
+        }
+    }
+}

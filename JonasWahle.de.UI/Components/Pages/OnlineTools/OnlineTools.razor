@@ -1,7 +1,58 @@
 ﻿@page "/online-werkzeuge"
+@using JonasWahle.de.UI.Components.Pages.OnlineTools.Tools
 
 <PageTitle>Online-Werkzeuge</PageTitle>
 
-<h1>
-    Online-Werkzeuge
-</h1>
+<MudStack Spacing="4" Class="mb-3">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h4">Online-Werkzeuge</MudText>
+    </MudStack>
+
+    <MudExpansionPanels >
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.QrCode" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">QR-Code Generator</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <QrCodeGenerator />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.Transform" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">Base64 Kodierer / Dekodierer</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <Base64EncoderDecoder />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.DataObject" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">JSON Formatierer</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <JsonFormatter />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.Code" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">JSON zu C# Model Generator</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <JsonToCsharpModelGenerator />
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+</MudStack>
