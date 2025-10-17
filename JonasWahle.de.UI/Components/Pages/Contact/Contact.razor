@@ -3,9 +3,10 @@
 @using System.Text.Json
 @using System.Text
 @using JonasWahle.de.Domain.Models
+@using JonasWahle.de.UI.Interfaces
 @inject NavigationManager NavigationManager
 @inject IHttpClientFactory HttpClientFactory
-@inject ISnackbar Snackbar
+@inject ISnackbarService SnackbarService
 <PageTitle>Kontakt</PageTitle>
 
 <MudStack Spacing="4" Class="mb-3">
@@ -13,7 +14,7 @@
         <MudText Typo="Typo.h4">Kontakt</MudText>
     </MudStack>
 
-    <EditForm Model="@_sendMessageDto" OnValidSubmit="OnValidSubmit">
+    <EditForm Model="@_sendMessageDto" OnValidSubmit="async (editContext) => await OnValidSubmitAsync(editContext)">
         <DataAnnotationsValidator />
 
         <MudTextField Variant="Variant.Outlined" Label="Name" Class="mb-3" HelperText="Namen eingeben" data-bwignore
@@ -46,39 +47,40 @@
     private bool _isSubmitting = false;
 
 
-    private async Task OnValidSubmit(EditContext context)
+    private async Task OnValidSubmitAsync(EditContext context)
     {
         if (_isSubmitting) return;
 
         _isSubmitting = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             using HttpClient httpClient = HttpClientFactory.CreateClient();
 
-            var json = JsonSerializer.Serialize(_sendMessageDto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync($"{NavigationManager.BaseUri}api/contact", content);
+            string json = JsonSerializer.Serialize(_sendMessageDto);
+            StringContent content = new (json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await httpClient.PostAsync($"{NavigationManager.BaseUri}api/contact", content);
             
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Nachricht erfolgreich gesendet!", Severity.Success);
+                SnackbarService.ShowSuccess("Nachricht erfolgreich gesendet!");
                 _sendMessageDto = new();
             }
             else
             {
-                Snackbar.Add("Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.", Severity.Error);
+                SnackbarService.ShowError("Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Ein unerwarteter Fehler ist aufgetreten: {ex.Message}", Severity.Error);
+            SnackbarService.ShowError($"Ein unerwarteter Fehler ist aufgetreten: {ex.Message}");
         }
         finally
         {
             _isSubmitting = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

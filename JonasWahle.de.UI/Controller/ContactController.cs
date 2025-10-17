@@ -7,17 +7,8 @@ using MimeKit;
 namespace JonasWahle.de.UI.Controller
 {
     [Route("api/[controller]")]
-    public class ContactController : ControllerBase
+    public class ContactController(IOptions<SmtpSettings> SmtpSettings, ILogger<ContactController> Logger) : ControllerBase
     {
-        private readonly SmtpSettings _smtpSettings;
-        private readonly ILogger<ContactController> _logger;
-
-        public ContactController(IOptions<SmtpSettings> smtpSettings, ILogger<ContactController> logger)
-        {
-            _smtpSettings = smtpSettings.Value;
-            _logger = logger;
-        }
-
         [HttpPost]
         public async Task<ActionResult> SendContactMessage([FromBody] SendMessageDto dto)
         {
@@ -33,7 +24,7 @@ namespace JonasWahle.de.UI.Controller
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Fehler beim Senden der Kontakt Nachricht");
+                Logger.LogError(ex, "Fehler beim Senden der Kontakt Nachricht");
                 return StatusCode(500, new { message = "Fehler beim Senden der Nachricht" });
             }
         }
@@ -41,9 +32,9 @@ namespace JonasWahle.de.UI.Controller
         private async Task SendEmailAsync(SendMessageDto dto)
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Kontaktformular", _smtpSettings.FromAddress));
-            message.To.Add(new MailboxAddress("Jonas Wahle", _smtpSettings.ToAddress));
-            message.Subject = $"Kontaktformular-Nachricht von {dto.Name}";
+            message.From.Add(new MailboxAddress("jonaswahle.de | Kontaktformular", SmtpSettings.Value.FromAddress));
+            message.To.Add(new MailboxAddress("Jonas Wahle", SmtpSettings.Value.ToAddress));
+            message.Subject = $"jonaswahle.de | Kontaktformular ({dto.Name})";
             message.Body = new TextPart("plain")
             {
                 Text = $@"
@@ -56,9 +47,9 @@ Nachricht: {dto.Message}
 Gesendet am: {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
             };
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
-            await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
+            using SmtpClient client = new();
+            await client.ConnectAsync(SmtpSettings.Value.Host, SmtpSettings.Value.Port, MailKit.Security.SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(SmtpSettings.Value.Username, SmtpSettings.Value.Password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }
