@@ -1,6 +1,8 @@
 using JonasWahle.de.Domain.Interfaces;
 using JonasWahle.de.Domain.Services;
 using JonasWahle.de.UI.Components;
+using JonasWahle.de.UI.Interfaces;
+using JonasWahle.de.UI.Services;
 using MudBlazor.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -23,6 +25,8 @@ builder.Services.AddControllers();
 builder.Services.AddMudServices();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICookieService, CookieService>();
+builder.Services.AddScoped<IClipboardService, ClipboardService>();
+builder.Services.AddScoped<ISnackbarService, SnackbarService>();
 
 WebApplication app = builder.Build();
 

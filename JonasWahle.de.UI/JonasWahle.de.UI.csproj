@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="MudBlazor" Version="8.13.0" />
+    <PackageReference Include="PinguApps.Blazor.QRCode" Version="1.1.4" />
   </ItemGroup>
 
   <ItemGroup>
