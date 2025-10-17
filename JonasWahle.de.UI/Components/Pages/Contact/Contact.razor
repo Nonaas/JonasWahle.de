@@ -1,7 +1,96 @@
 ﻿@page "/kontakt"
-
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using System.Text
+@inject HttpClient HttpClient
+@inject ISnackbar Snackbar
 <PageTitle>Kontakt</PageTitle>
 
-<h1>
-    Kontakt
-</h1>
+<MudStack Spacing="4" Class="mb-3">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h4">Kontakt</MudText>
+    </MudStack>
+
+    <EditForm Model="@_sendMessageDto" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+
+        <MudTextField Variant="Variant.Outlined" Label="Name" Class="mb-3" HelperText="Namen eingeben" data-bwignore
+                      @bind-Value="_sendMessageDto.Name" For="@(() => _sendMessageDto.Name)" InputType="InputType.Text" />
+
+        <MudTextField Variant="Variant.Outlined" Label="Email" Class="mb-3" HelperText="Email eingeben" data-bwignore
+                      @bind-Value="_sendMessageDto.Email" For="@(() => _sendMessageDto.Email)" InputType="InputType.Email" />
+
+        <MudTextField Variant="Variant.Outlined" Label="Nachricht" Class="mb-3" HelperText="Nachricht eingeben" data-bwignore
+                      @bind-Value="_sendMessageDto.Message" For="@(() => _sendMessageDto.Message)" InputType="InputType.Text" Lines="3" />
+
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
+                   Disabled="@_isSubmitting">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Senden...</MudText>
+            }
+            else
+            {
+                <MudText>Senden</MudText>
+            }
+        </MudButton>
+    </EditForm>
+    
+</MudStack>
+
+@code{
+    private SendMessageDto _sendMessageDto = new();
+    private bool _isSubmitting = false;
+
+    public class SendMessageDto
+    {
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihren Namen an")]
+        [StringLength(maximumLength: 50, MinimumLength = 2, ErrorMessage = "Mindestens 2 und maximal 50 Zeichen erlaubt")]
+        public string? Name { get; set; }
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihre Email an")]
+        [EmailAddress(ErrorMessage = "Bitte geben Sie eine gültige Email-Adresse ein")]
+        [StringLength(maximumLength: 100, MinimumLength = 5, ErrorMessage = "Mindestens 5 und maximal 100 Zeichen erlaubt")]
+        public string? Email { get; set; }
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihre Nachricht an")]
+        [StringLength(maximumLength: 1000, MinimumLength = 10, ErrorMessage = "Mindestens 10 und maximal 1000 Zeichen erlaubt")]
+        public string? Message { get; set; }
+    }
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        if (_isSubmitting) return;
+        
+        _isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            var json = JsonSerializer.Serialize(_sendMessageDto);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            var response = await HttpClient.PostAsync("/api/contact", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Nachricht erfolgreich gesendet!", Severity.Success);
+                _sendMessageDto = new();
+            }
+            else
+            {
+                Snackbar.Add("Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ein unerwarteter Fehler ist aufgetreten: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+}

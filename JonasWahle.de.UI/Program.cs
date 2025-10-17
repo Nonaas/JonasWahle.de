@@ -14,6 +14,9 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add controllers for API endpoints
+builder.Services.AddControllers();
+
 // Add application services
 builder.Services.AddMudServices();
 builder.Services.AddHttpContextAccessor();
@@ -35,5 +38,8 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .DisableAntiforgery()
     .AddInteractiveServerRenderMode();
+
+// Map API controllers
+app.MapControllers();
 
 app.Run();
