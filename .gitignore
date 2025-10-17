@@ -37,3 +37,4 @@ packages/
 *.DS_Store
 Thumbs.db
 /JonasWahle.de.UI/Properties
+JonasWahle.de.UI/appsettings.json
