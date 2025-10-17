@@ -13,6 +13,8 @@ builder.Services.AddAntiforgery(options =>
 // Add base services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddHttpClient();
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 // Add controllers for API endpoints
 builder.Services.AddControllers();

@@ -1,19 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Mail;
+﻿using JonasWahle.de.Domain.Models;
+using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace JonasWahle.de.UI.Controller
 {
     [Route("api/[controller]")]
     public class ContactController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly SmtpSettings _smtpSettings;
         private readonly ILogger<ContactController> _logger;
 
-        public ContactController(IConfiguration configuration, ILogger<ContactController> logger)
+        public ContactController(IOptions<SmtpSettings> smtpSettings, ILogger<ContactController> logger)
         {
-            _configuration = configuration;
+            _smtpSettings = smtpSettings.Value;
             _logger = logger;
         }
 
@@ -39,49 +40,28 @@ namespace JonasWahle.de.UI.Controller
 
         private async Task SendEmailAsync(SendMessageDto dto)
         {
-            using var mail = new MailMessage();
-            using var smtp = new SmtpClient();
-
-            // Email setup
-            mail.From = new MailAddress(_configuration["Email:FromAddress"], "Kontaktformular");
-            mail.To.Add(new MailAddress(_configuration["Email:ToAddress"], "Jonas Wahle"));
-            mail.Subject = $"Kontaktformular-Nachricht von {dto.Name}";
-            mail.Body = $@"
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Kontaktformular", _smtpSettings.FromAddress));
+            message.To.Add(new MailboxAddress("Jonas Wahle", _smtpSettings.ToAddress));
+            message.Subject = $"Kontaktformular-Nachricht von {dto.Name}";
+            message.Body = new TextPart("plain")
+            {
+                Text = $@"
 Neue Nachricht über das Kontaktformular:
 
 Name: {dto.Name}
 E-Mail: {dto.Email}
 Nachricht: {dto.Message}
 
-Gesendet am: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+Gesendet am: {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
+            };
 
-            mail.IsBodyHtml = false;
-
-            // SMTP setup
-            smtp.Host = _configuration["Email:SmtpHost"];
-            smtp.Port = int.Parse(_configuration["Email:SmtpPort"]);
-            smtp.EnableSsl = bool.Parse(_configuration["Email:UseSsl"]);
-            smtp.Credentials = new NetworkCredential(
-                _configuration["Email:Username"], 
-                _configuration["Email:Password"]);
-
-            await smtp.SendMailAsync(mail);
+            using var client = new SmtpClient();
+            await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
         }
     }
 
-    public class SendMessageDto
-    {
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihren Namen an")]
-        [StringLength(maximumLength: 50, MinimumLength = 2, ErrorMessage = "Mindestens 2 und maximal 50 Zeichen erlaubt")]
-        public string? Name { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihre Email an")]
-        [EmailAddress(ErrorMessage = "Bitte geben Sie eine gültige Email-Adresse ein")]
-        [StringLength(maximumLength: 100, MinimumLength = 5, ErrorMessage = "Mindestens 5 und maximal 100 Zeichen erlaubt")]
-        public string? Email { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihre Nachricht an")]
-        [StringLength(maximumLength: 1000, MinimumLength = 10, ErrorMessage = "Mindestens 10 und maximal 1000 Zeichen erlaubt")]
-        public string? Message { get; set; }
-    }
 }
