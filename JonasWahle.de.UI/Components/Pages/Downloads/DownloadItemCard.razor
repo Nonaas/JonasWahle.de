@@ -1,27 +1,69 @@
-﻿<MudItem xs="12" sm="6" md="4" lg="3" xl="3">
-    <MudCard Elevation="5" Class="h-100" Style="@($"background-color: {BackgroundColorString}; color: {FontColorString};")">
-        <div style="position: relative; border-radius: 4px;">
-            <MudCardMedia Image="@ImagePath" Height="250" />
+﻿@using JonasWahle.de.Domain.Enums
 
-            <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;">
-                @foreach (string platform in PlatformsIcons)
+
+<MudItem xs="12" sm="6" md="4" lg="3" xl="3" Style="@($"scale: {(IsHovered ? "1" : ".95")}; transition: all 0.3s ease;")">
+    <MudCard Class="h-100 download-card" Style="@($"background-color: {BackgroundColorString}; color: {FontColorString}; transition: all 0.3s ease;")"
+        Elevation="@(IsHovered ? 20 : 4)" @onmouseenter="OnMouseEnter" @onmouseleave="OnMouseLeave">
+        
+        <div style="position: relative; border-radius: 4px; overflow: hidden;">
+            <MudCardMedia Image="@ImagePath" Height="250" Style="transition: transform 0.3s ease;" />
+            
+            @* Platform badges *@
+            <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
+                @foreach (PlatformEnum platform in Platforms)
                 {
-                    <MudIcon Icon="@platform" Size="Size.Medium" />
+                    <div style="background: rgba(0,0,0,0.7); padding: 6px; border-radius: 50%; backdrop-filter: blur(4px);">
+                        @{ string icon; }
+                        @switch (platform)
+                        {
+                            case PlatformEnum.Android:
+                                icon = Icons.Material.Filled.Android;
+                                break;
+                            case PlatformEnum.Windows:
+                                icon = Icons.Custom.Brands.MicrosoftWindows;
+                                break;
+                            default:
+                                icon = Icons.Material.Filled.SportsEsports;
+                                break;
+                        }
+                        <MudIcon Icon="@icon" Size="Size.Small" Style="color: white;" />
+                    </div>
                 }
             </div>
         </div>
 
-        <MudCardContent>
-            <MudText Typo="Typo.h5">@Title</MudText>
-            <MudText Typo="Typo.subtitle1">@Description</MudText>
+        <MudCardContent Class="pb-2">
+            <MudText Typo="Typo.h6" Class="mb-2 fw-bold">@Title</MudText>
+            <MudText Typo="Typo.body2" Class="mb-2" Style="line-height: 1.4; opacity: 0.9;">
+                @Description
+            </MudText>
+            
+            @* Tags/Categories *@
+            @if (Tags?.Any() == true)
+            {
+                <MudStack Row Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
+                    @foreach (var tag in Tags)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {FontColorString}; color: {FontColorString}; font-size: 0.7rem;")" Class="px-2 py-0">
+                            @tag
+                        </MudChip>
+                    }
+                </MudStack>
+            }
         </MudCardContent>
 
-        <MudCardActions>
+        <MudCardActions Class="pt-0">
             <MudStack Class="w-100" Spacing="2">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" 
-                    Class="w-100 fs-6" Target="_blank" Href="@HrefURL">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="w-100" Target="_blank" Href="@HrefURL" StartIcon="@Icons.Material.Filled.Download">
                     Bei itch.io herunterladen
                 </MudButton>
+                
+                @if (!string.IsNullOrEmpty(GitHubUrl))
+                {
+                    <MudButton Variant="Variant.Outlined" Class="w-100" Target="_blank" Href="@GitHubUrl" StartIcon="@Icons.Custom.Brands.GitHub" Style="@($"border-color: {FontColorString}; color: {FontColorString};")">
+                        Source Code
+                    </MudButton>
+                }
             </MudStack>
         </MudCardActions>
     </MudCard>
@@ -29,25 +71,28 @@
 
 
 @code {
-    [Parameter]
-    public required string ImagePath { get; set; }
+    [Parameter] public required string ImagePath { get; set; }
+    [Parameter] public required string BackgroundColorString { get; set; }
+    [Parameter] public string FontColorString { get; set; } = "#000000";
+    [Parameter] public required string Title { get; set; }
+    [Parameter] public required string Description { get; set; }
+    [Parameter] public required string HrefURL { get; set; }
+    [Parameter] public required List<PlatformEnum> Platforms { get; set; }
+    [Parameter] public string? GitHubUrl { get; set; }
+    [Parameter] public List<string>? Tags { get; set; }
 
-    [Parameter]
-    public required string BackgroundColorString { get; set; }
+    private bool IsHovered { get; set; }
 
-    [Parameter]
-    public string FontColorString { get; set; } = "#000000";
 
-    [Parameter]
-    public required string Title { get; set; }
+    private void OnMouseEnter()
+    {
+        IsHovered = true;
+        StateHasChanged();
+    }
 
-    [Parameter]
-    public required string Description { get; set; }
-
-    [Parameter]
-    public required string HrefURL { get; set; }
-
-    [Parameter]
-    public required List<string> PlatformsIcons { get; set; }
-
+    private void OnMouseLeave()
+    {
+        IsHovered = false;
+        StateHasChanged();
+    }
 }
