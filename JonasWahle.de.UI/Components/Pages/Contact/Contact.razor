@@ -29,7 +29,7 @@
 
         <MudGrid Class="mb-3" Spacing="2">
             <MudItem xs="12" sm="12" md="5" lg="3" Class="d-flex justify-content-start align-items-center">
-                <Captcha @bind-CaptchaWord="@_captchaValue" CharNumber="5" Height="60" OnRefresh="OnCaptchaRefresh" />
+                <Captcha @bind-CaptchaWord="@_captchaValue" CharNumber="5" Height="60" />
             </MudItem>
             <MudItem xs="12" sm="12" md="7" lg="9" Class="d-flex align-items-center">
                 <MudTextField Class="w-100" @ref="_captchaInputField" Variant="Variant.Outlined" Label="Captcha" Required HelperText="Captcha-Wert eingeben" ErrorText="Bitte geben Sie den korrekten Captcha-Wert ein oder generieren Sie ein neues Captcha"
@@ -68,11 +68,6 @@
     private string _captchaInput = string.Empty;
     private MudTextField<string>? _captchaInputField;
 
-
-    private void OnCaptchaRefresh()
-    {
-        _captchaInput = string.Empty;
-    }
 
     private async Task OnValidSubmitAsync(EditContext context)
     {
