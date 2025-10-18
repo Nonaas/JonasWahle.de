@@ -11,9 +11,17 @@
             </MudAvatar>
             <MudStack Spacing="0">
                 <MudText Typo="Typo.h5">Hey, ich bin Jonas!</MudText>
-                <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    Full-Stack-Entwickler | Code-Enthusiast | Hobby-Spieleentwickler
-                </MudText>
+
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">
+                        Full-Stack-Entwickler <br> Code-Enthusiast <br> Hobby-Spieleentwickler
+                    </MudText>
+                </MudHidden>
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">
+                        Full-Stack-Entwickler | Code-Enthusiast | Hobby-Spieleentwickler
+                    </MudText>
+                </MudHidden>
             </MudStack>
         </MudStack>
     </MudStack>
