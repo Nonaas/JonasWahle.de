@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using System.Text
+@using BlazorCaptcha
 @using JonasWahle.de.Domain.Models
 @using JonasWahle.de.UI.Interfaces
 @inject NavigationManager NavigationManager
@@ -17,21 +18,38 @@
     <EditForm Model="@_sendMessageDto" OnValidSubmit="async (editContext) => await OnValidSubmitAsync(editContext)">
         <DataAnnotationsValidator />
 
-        <MudTextField Variant="Variant.Outlined" Label="Name" Class="mb-3" HelperText="Namen eingeben" data-bwignore
-        @bind-Value="_sendMessageDto.Name" For="@(() => _sendMessageDto.Name)" InputType="InputType.Text" />
+        <MudTextField Variant="Variant.Outlined" Label="Name" Class="mb-3" HelperText="Namen eingeben" data-bwignore data-1p-ignore
+            @bind-Value="_sendMessageDto.Name" For="@(() => _sendMessageDto.Name)" InputType="InputType.Text" />
 
-        <MudTextField Variant="Variant.Outlined" Label="Email" Class="mb-3" HelperText="Email eingeben" data-bwignore
-        @bind-Value="_sendMessageDto.Email" For="@(() => _sendMessageDto.Email)" InputType="InputType.Email" />
+        <MudTextField Variant="Variant.Outlined" Label="Email" Class="mb-3" HelperText="Email eingeben" data-bwignore data-1p-ignore
+            @bind-Value="_sendMessageDto.Email" For="@(() => _sendMessageDto.Email)" InputType="InputType.Email" />
 
-        <MudTextField Variant="Variant.Outlined" Label="Nachricht" Class="mb-3" HelperText="Nachricht eingeben" data-bwignore
-        @bind-Value="_sendMessageDto.Message" For="@(() => _sendMessageDto.Message)" InputType="InputType.Text" Lines="3" />
+        <MudTextField Variant="Variant.Outlined" Label="Nachricht" Class="mb-3" HelperText="Nachricht eingeben" data-bwignore data-1p-ignore
+            @bind-Value="_sendMessageDto.Message" For="@(() => _sendMessageDto.Message)" InputType="InputType.Text" Lines="3" />
 
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
-        Disabled="@_isSubmitting">
+        <MudGrid Class="mb-3" Spacing="2">
+            <MudItem xs="12" sm="12" md="5" lg="3" Class="d-flex justify-content-start align-items-center">
+                <Captcha @bind-CaptchaWord="@_captchaValue" CharNumber="5" Height="60" OnRefresh="OnCaptchaRefresh" />
+            </MudItem>
+            <MudItem xs="12" sm="12" md="7" lg="9" Class="d-flex align-items-center">
+                <MudTextField Class="w-100" @ref="_captchaInputField" Variant="Variant.Outlined" Label="Captcha" Required HelperText="Captcha-Wert eingeben" ErrorText="Bitte geben Sie den korrekten Captcha-Wert ein oder generieren Sie ein neues Captcha"
+                    data-bwignore data-1p-ignore @bind-Value="_captchaInput" InputType="InputType.Text" Clearable />
+            </MudItem>
+        </MudGrid>
+
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="0" Class="mb-3">
+            <MudCheckBox T="bool" id="privacyPolicyCheckbox" Color="Color.Primary" Disabled="@_isSubmitting" Required RequiredError="Bitte akzeptieren Sie die Datenschutzerklärung" />
+            <MudInputLabel Variant="Variant.Text" ForId="privacyPolicyCheckbox" Class="text-break">
+                <MudLink Href="/datenschutz" Target="_blank" Color="Color.Secondary">Datenschutzerklärung</MudLink>
+                akzeptiert
+            </MudInputLabel>
+        </MudStack>
+
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Size="Size.Large" Color="Color.Primary" Class="mt-3" Style="min-width: 150px;" Disabled="@_isSubmitting">
             @if (_isSubmitting)
             {
-                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                <MudText Class="ms-2">Senden ...</MudText>
+                <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
+                <MudText Color="Color.Primary" Class="ms-2">Senden ...</MudText>
             }
             else
             {
@@ -46,10 +64,30 @@
     private SendMessageDto _sendMessageDto = new();
     private bool _isSubmitting = false;
 
+    private string _captchaValue = string.Empty;
+    private string _captchaInput = string.Empty;
+    private MudTextField<string>? _captchaInputField;
+
+
+    private void OnCaptchaRefresh()
+    {
+        _captchaInput = string.Empty;
+    }
 
     private async Task OnValidSubmitAsync(EditContext context)
     {
         if (_isSubmitting) return;
+
+        if (_captchaInputField != null && _captchaInput.Trim() != _captchaValue.Trim())
+        {
+            _captchaInputField.Error = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+        else
+        {
+            _captchaInputField.Error = false;
+        }
 
         _isSubmitting = true;
         await InvokeAsync(StateHasChanged);
@@ -62,7 +100,7 @@
             StringContent content = new (json, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await httpClient.PostAsync($"{NavigationManager.BaseUri}api/contact", content);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 SnackbarService.ShowSuccess("Nachricht erfolgreich gesendet!");
@@ -79,6 +117,7 @@
         }
         finally
         {
+            _captchaInput = string.Empty;
             _isSubmitting = false;
             await InvokeAsync(StateHasChanged);
         }

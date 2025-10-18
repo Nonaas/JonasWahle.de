@@ -14,7 +14,7 @@ namespace JonasWahle.de.Domain.Models
         public string? Email { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Bitte geben Sie Ihre Nachricht an")]
-        [StringLength(maximumLength: 1000, MinimumLength = 10, ErrorMessage = "Mindestens 10 und maximal 1000 Zeichen erlaubt")]
+        [StringLength(maximumLength: 1000, MinimumLength = 5, ErrorMessage = "Mindestens 5 und maximal 1000 Zeichen erlaubt")]
         public string? Message { get; set; }
     }
 }
