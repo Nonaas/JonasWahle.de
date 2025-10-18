@@ -1,0 +1,53 @@
+﻿<MudItem xs="12" sm="6" md="4" lg="3" xl="3">
+    <MudCard Elevation="5" Class="h-100" Style="@($"background-color: {BackgroundColorString}; color: {FontColorString};")">
+        <div style="position: relative; border-radius: 4px;">
+            <MudCardMedia Image="@ImagePath" Height="250" />
+
+            <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;">
+                @foreach (string platform in PlatformsIcons)
+                {
+                    <MudIcon Icon="@platform" Size="Size.Medium" />
+                }
+            </div>
+        </div>
+
+        <MudCardContent>
+            <MudText Typo="Typo.h5">@Title</MudText>
+            <MudText Typo="Typo.subtitle1">@Description</MudText>
+        </MudCardContent>
+
+        <MudCardActions>
+            <MudStack Class="w-100" Spacing="2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                    Class="w-100 fs-6" Target="_blank" Href="@HrefURL">
+                    Bei itch.io herunterladen
+                </MudButton>
+            </MudStack>
+        </MudCardActions>
+    </MudCard>
+</MudItem>
+
+
+@code {
+    [Parameter]
+    public required string ImagePath { get; set; }
+
+    [Parameter]
+    public required string BackgroundColorString { get; set; }
+
+    [Parameter]
+    public string FontColorString { get; set; } = "#000000";
+
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public required string Description { get; set; }
+
+    [Parameter]
+    public required string HrefURL { get; set; }
+
+    [Parameter]
+    public required List<string> PlatformsIcons { get; set; }
+
+}
