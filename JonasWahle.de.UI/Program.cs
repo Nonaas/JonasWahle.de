@@ -1,10 +1,13 @@
+using JonasWahle.de.Data;
 using JonasWahle.de.Domain.Interfaces;
 using JonasWahle.de.Domain.Services;
 using JonasWahle.de.UI.Components;
 using JonasWahle.de.UI.Interfaces;
 using JonasWahle.de.UI.Services;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Serilog;
+using System;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +26,10 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Add EF Core
+builder.Services.AddDbContextFactory<ApplicationContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Add base services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -38,6 +45,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IClipboardService, ClipboardService>();
 builder.Services.AddScoped<ISnackbarService, SnackbarService>();
+builder.Services.AddScoped<IDownloadService, DownloadService>();
 
 WebApplication app = builder.Build();
 
@@ -58,5 +66,13 @@ app.MapRazorComponents<App>()
 
 // Map API controllers
 app.MapControllers();
+
+// Create DB if it doesnt exist
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    IDbContextFactory<ApplicationContext> dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<ApplicationContext>>();
+    using ApplicationContext dbContext = await dbFactory.CreateDbContextAsync();
+    dbContext.Database.Migrate();
+}
 
 app.Run();

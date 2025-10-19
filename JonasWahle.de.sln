@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.UI", "JonasWa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.Domain", "JonasWahle.de.Domain\JonasWahle.de.Domain.csproj", "{B29349D6-2B23-41BE-BB37-46DC2ACDF427}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.Data", "JonasWahle.de.Data\JonasWahle.de.Data.csproj", "{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B29349D6-2B23-41BE-BB37-46DC2ACDF427}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
