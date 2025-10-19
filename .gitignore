@@ -38,3 +38,4 @@ packages/
 Thumbs.db
 /JonasWahle.de.UI/Properties
 JonasWahle.de.UI/appsettings.json
+JonasWahle.de.UI/app.db
