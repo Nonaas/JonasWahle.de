@@ -27,16 +27,6 @@
         <MudTextField Variant="Variant.Outlined" Label="Nachricht" Class="mb-3" HelperText="Nachricht eingeben" data-bwignore data-1p-ignore
             @bind-Value="_sendMessageDto.Message" For="@(() => _sendMessageDto.Message)" InputType="InputType.Text" Lines="3" />
 
-        <MudGrid Class="mb-3" Spacing="2">
-            <MudItem xs="12" sm="12" md="5" lg="3" Class="d-flex justify-content-start align-items-center">
-                <Captcha @bind-CaptchaWord="@_captchaValue" CharNumber="5" Height="60" />
-            </MudItem>
-            <MudItem xs="12" sm="12" md="7" lg="9" Class="d-flex align-items-center">
-                <MudTextField Class="w-100" @ref="_captchaInputField" Variant="Variant.Outlined" Label="Captcha" Required HelperText="Captcha-Wert eingeben" ErrorText="Bitte geben Sie den korrekten Captcha-Wert ein oder generieren Sie ein neues Captcha"
-                    data-bwignore data-1p-ignore @bind-Value="_captchaInput" InputType="InputType.Text" Clearable />
-            </MudItem>
-        </MudGrid>
-
         <MudStack Row AlignItems="AlignItems.Center" Spacing="0" Class="mb-3">
             <MudCheckBox T="bool" id="privacyPolicyCheckbox" Color="Color.Primary" Disabled="@_isSubmitting" Required RequiredError="Bitte akzeptieren Sie die Datenschutzerklärung" />
             <MudInputLabel Variant="Variant.Text" ForId="privacyPolicyCheckbox" Class="text-break">
@@ -64,25 +54,10 @@
     private SendMessageDto _sendMessageDto = new();
     private bool _isSubmitting = false;
 
-    private string _captchaValue = string.Empty;
-    private string _captchaInput = string.Empty;
-    private MudTextField<string>? _captchaInputField;
-
 
     private async Task OnValidSubmitAsync(EditContext context)
     {
         if (_isSubmitting) return;
-
-        if (_captchaInputField != null && _captchaInput.Trim() != _captchaValue.Trim())
-        {
-            _captchaInputField.Error = true;
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-        else
-        {
-            _captchaInputField.Error = false;
-        }
 
         _isSubmitting = true;
         await InvokeAsync(StateHasChanged);
@@ -112,7 +87,6 @@
         }
         finally
         {
-            _captchaInput = string.Empty;
             _isSubmitting = false;
             await InvokeAsync(StateHasChanged);
         }
