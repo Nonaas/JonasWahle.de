@@ -1,7 +1,12 @@
 ﻿@page "/downloads"
-@using JonasWahle.de.Domain.Enums
-@using JonasWahle.de.Domain.Models
-
+@using JonasWahle.de.Data.Enums.DownloadItem
+@using JonasWahle.de.Data.Models
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.Domain.Utilities
+@using JonasWahle.de.UI.Interfaces
+@inject ILogger<Downloads> Logger
+@inject ISnackbarService SnackbarService
+@inject IDownloadService DownloadService
 <PageTitle>Downloads - Jonas Wahle</PageTitle>
 
 
@@ -14,97 +19,107 @@
     </MudText>
 
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Gutters="false">
-        <MudStack Spacing="6">
-            @* Filter/Sort Controls *@
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4" Wrap="Wrap.Wrap">
-                <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-                    <MudText Typo="Typo.body1" Class="fw-medium" Style="min-width: 64px;">Filter:</MudText>
-                    <MudSelect T="string" @bind-Value="_selectedFilter" Variant="Variant.Outlined" Margin="Margin.Dense" Style="min-width: 160px;">
-                        <MudSelectItem Value="@("all")">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <MudIcon Icon="@Icons.Material.Filled.Apps" Size="Size.Small" />
-                                Alle (@_allItems.Count())
-                            </div>
-                        </MudSelectItem>
-                        <MudSelectItem Value="@("games")">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Size="Size.Small" />
-                                Spiele (@_gameItems.Count())
-                            </div>
-                        </MudSelectItem>
-                        <MudSelectItem Value="@("apps")">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Small" />
-                                Apps (@_appItems.Count())
-                            </div>
-                        </MudSelectItem>
-                        <MudSelectItem Value="@("android")">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <MudIcon Icon="@Icons.Material.Filled.Android" Size="Size.Small" />
-                                Android (@_androidItems.Count())
-                            </div>
-                        </MudSelectItem>
-                        <MudSelectItem Value="@("windows")">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <MudIcon Icon="@Icons.Custom.Brands.MicrosoftWindows" Size="Size.Small" />
-                                Windows (@_windowsItems.Count())
-                            </div>
-                        </MudSelectItem>
-                    </MudSelect>
+        @if (_isLoading)
+        {
+            <MudStack Spacing="3" AlignItems="AlignItems.Center" Class="pa-8">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                <MudText Typo="Typo.body1">Downloads werden geladen...</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="6">
+                @* Filter/Sort Controls *@
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4" Wrap="Wrap.Wrap">
+                    <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body1" Class="fw-medium" Style="min-width: 64px;">Filter:</MudText>
+                        <MudSelect T="string" @bind-Value="_selectedFilter" Variant="Variant.Outlined" Margin="Margin.Dense" Style="min-width: 160px;">
+                            <MudSelectItem Value="@("all")">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Apps" Size="Size.Small" />
+                                    Alle (@_allItems.Count())
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("games")">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Size="Size.Small" />
+                                    Spiele (@_gameItems.Count())
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("apps")">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Small" />
+                                    Apps (@_appItems.Count())
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("android")">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Android" Size="Size.Small" />
+                                    Android (@_androidItems.Count())
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("windows")">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <MudIcon Icon="@Icons.Custom.Brands.MicrosoftWindows" Size="Size.Small" />
+                                    Windows (@_windowsItems.Count())
+                                </div>
+                            </MudSelectItem>
+                        </MudSelect>
+                    </MudStack>
+
+                    <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2" Style="min-width: 64px;">Sortieren:</MudText>
+                        <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            <MudSelectItem Value="@("newest")">Neueste zuerst</MudSelectItem>
+                            <MudSelectItem Value="@("oldest")">Älteste zuerst</MudSelectItem>
+                            <MudSelectItem Value="@("name")">Name A-Z</MudSelectItem>
+                        </MudSelect>
+                    </MudStack>
                 </MudStack>
 
-                <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-                    <MudText Typo="Typo.body2" Style="min-width: 64px;">Sortieren:</MudText>
-                    <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Margin="Margin.Dense">
-                        <MudSelectItem Value="@("newest")">Neueste zuerst</MudSelectItem>
-                        <MudSelectItem Value="@("oldest")">Älteste zuerst</MudSelectItem>
-                        <MudSelectItem Value="@("name")">Name A-Z</MudSelectItem>
-                    </MudSelect>
-                </MudStack>
+                @* Statistics *@
+                <MudGrid Spacing="2" Class="mb-4">
+                    <MudItem xs="12" sm="6">
+                        <MudPaper Elevation="4" Class="pa-4 text-center">
+                            <MudText Typo="Typo.h4" Color="Color.Primary" Class="fw-bold">@_allItems.Count</MudText>
+                            <MudText Typo="Typo.body2">Verfügbare Downloads</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudPaper Elevation="4" Class="pa-4 text-center">
+                            <MudText Typo="Typo.h4" Color="Color.Primary" Class="fw-bold">@GetTotalPlatforms()</MudText>
+                            <MudText Typo="Typo.body2">Unterstützte Plattformen</MudText>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
             </MudStack>
 
-            @* Statistics *@
-            <MudGrid Spacing="2" Class="mb-4">
-                <MudItem xs="12" sm="6">
-                    <MudPaper Elevation="4" Class="pa-4 text-center">
-                        <MudText Typo="Typo.h4" Color="Color.Primary" Class="fw-bold">@_allItems.Count</MudText>
-                        <MudText Typo="Typo.body2">Verfügbare Downloads</MudText>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudPaper Elevation="4" Class="pa-4 text-center">
-                        <MudText Typo="Typo.h4" Color="Color.Primary" Class="fw-bold">@GetTotalPlatforms()</MudText>
-                        <MudText Typo="Typo.body2">Unterstützte Plattformen</MudText>
-                    </MudPaper>
-                </MudItem>
+            @* Downloads Grid *@
+            <MudGrid Spacing="3">
+                @foreach (var item in GetSortedItems())
+                {
+                    <DownloadItemCard ImagePath="@item.ImagePath"
+                                      BackgroundColorString="@item.BackgroundColor"
+                                      FontColorString="@item.FontColor"
+                                      Title="@item.Title"
+                                      Description="@item.Description"
+                                      HrefURL="@item.DownloadUrl"
+                                      Platforms="@item.Platforms"
+                                      GitHubUrl="@item.GitHubUrl"
+                                      Tags="@item.Tags" />
+                }
             </MudGrid>
-        </MudStack>
 
-        @* Downloads Grid *@
-        <MudGrid Spacing="3">
-            @foreach (var item in GetSortedItems())
+            @if (!_filteredItems.Any())
             {
-                <DownloadItemCard ImagePath="@item.ImagePath"
-                                  BackgroundColorString="@item.BackgroundColor"
-                                  FontColorString="@item.FontColor"
-                                  Title="@item.Title"
-                                  Description="@item.Description"
-                                  HrefURL="@item.DownloadUrl"
-                                  Platforms="@item.Platforms"
-                                  GitHubUrl="@item.GitHubUrl"
-                                  Tags="@item.Tags" />
+                <MudPaper Class="pa-8 text-center mt-6" Elevation="1">
+                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Class="mb-3 text-muted" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Keine Downloads gefunden</MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">
+                        Probiere einen anderen Filter oder komme später wieder für neue Inhalte.
+                    </MudText>
+                </MudPaper>
             }
-        </MudGrid>
-
-        @if (!_filteredItems.Any())
-        {
-            <MudPaper Class="pa-8 text-center mt-6" Elevation="1">
-                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Class="mb-3 text-muted" />
-                <MudText Typo="Typo.h6" Class="mb-2">Keine Downloads gefunden</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">
-                    Probiere einen anderen Filter oder komme später wieder für neue Inhalte.
-                </MudText>
-            </MudPaper>
         }
     </MudContainer>
 </MudStack>
@@ -113,11 +128,13 @@
 @code {
     private string _sortBy = "newest";
     private string _selectedFilter = "all";
+    private bool _isLoading = true;
+    private List<DownloadItem> _allItems = new();
 
     private IEnumerable<DownloadItem> _gameItems => _allItems.Where(x => x.Category == "game");
     private IEnumerable<DownloadItem> _appItems => _allItems.Where(x => x.Category == "app");
-    private IEnumerable<DownloadItem> _androidItems => _allItems.Where(x => x.Platforms.Contains(PlatformEnum.Android));
-    private IEnumerable<DownloadItem> _windowsItems => _allItems.Where(x => x.Platforms.Contains(PlatformEnum.Windows));
+    private IEnumerable<DownloadItem> _androidItems => _allItems.Where(x => x.Platforms.Contains(Platform.Android));
+    private IEnumerable<DownloadItem> _windowsItems => _allItems.Where(x => x.Platforms.Contains(Platform.Windows));
 
     private IEnumerable<DownloadItem> _filteredItems => _selectedFilter switch
     {
@@ -128,66 +145,23 @@
         _ => _allItems
     };
 
-    private readonly List<DownloadItem> _allItems = new()
+
+    protected override async Task OnInitializedAsync()
     {
-        new()
+        try
         {
-            ImagePath = "img/downloads/mein-planer.png",
-            BackgroundColor = "#854495",
-            FontColor = "#ffffff",
-            Title = "Mein Planer",
-            Description = "Aufgaben und ToDo-Listen App mit Gamification.",
-            Category = "app",
-            Platforms = new() { PlatformEnum.Android, PlatformEnum.Windows },
-            ReleaseDate = new DateTime(2023, 6, 15),
-            DownloadUrl = "https://gamewhale-studios.itch.io/mytasker",
-            Tags = new(){"Produktivität", "Gamification", "Todo"},
-            GitHubUrl = null
-        },
-
-        new()
-        {
-            ImagePath = "img/downloads/desk-dash.png",
-            BackgroundColor = "#ff9900",
-            FontColor = "#000000",
-            Title = "Desk Dash",
-            Description = "Benutze dein Android-Smartphone als Fernsteuerung für deinen Windows-PC.",
-            Category = "app",
-            Platforms = new() { PlatformEnum.Android, PlatformEnum.Windows },
-            ReleaseDate = new DateTime(2023, 9, 20),
-            DownloadUrl = "https://gamewhale-studios.itch.io/deskdash",
-            Tags = new(){"Remote Control", "Utility", "PC Control"}
-        },
-
-        new()
-        {
-            ImagePath = "img/downloads/locked-and-loaded.png",
-            BackgroundColor = "#f04324",
-            FontColor = "#ffffff",
-            Title = "Locked'n'Loaded",
-            Description = "Actiongeladener Top-Down Twin-Stick-Shooter für Android.",
-            Category = "game",
-            Platforms = new() { PlatformEnum.Android },
-            ReleaseDate = new DateTime(2023, 3, 10),
-            DownloadUrl = "https://gamewhale-studios.itch.io/locked-n-loaded",
-            Tags = new(){"Action", "Shooter", "Twin-Stick"}
-        },
-
-        new()
-        {
-            ImagePath = "img/downloads/flapping-birb.png",
-            BackgroundColor = "#52a0b1",
-            FontColor = "#ffffff",
-            Title = "Flapping Birb",
-            Description = "Einfaches, aber herausforderndes Spiel, bei dem die Spieler einen Vogel steuern und ihn durch Rohre navigieren müssen.",
-            Category = "game",
-            Platforms = new() { PlatformEnum.Android },
-            ReleaseDate = new DateTime(2022, 11, 5),
-            DownloadUrl = "https://gamewhale-studios.itch.io/flapping-birb",
-            Tags = new(){"Casual", "Arcade", "Endless"}
+            _allItems = await DownloadService.GetAllDownloadItemsAsync();
         }
-    };
-
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading downloads data.");
+            SnackbarService.ShowError("Fehler beim Laden der verfügbaren Downloads. Bitte versuche es später erneut.");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
 
     private IEnumerable<DownloadItem> GetSortedItems()
     {
@@ -203,4 +177,5 @@
     {
         return _allItems.SelectMany(x => x.Platforms).Distinct().Count();
     }
+
 }

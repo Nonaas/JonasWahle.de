@@ -1,4 +1,6 @@
-﻿@using JonasWahle.de.Domain.Enums
+﻿@using JonasWahle.de.Data.Enums.DownloadItem
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.Domain.Utilities
 
 
 <MudItem xs="12" sm="6" md="4" lg="3" xl="3" Style="@($"scale: {(IsHovered ? "1" : ".95")}; transition: all 0.3s ease;")">
@@ -10,23 +12,25 @@
             
             @* Platform badges *@
             <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
-                @foreach (PlatformEnum platform in Platforms)
+                @foreach (Platform platform in Platforms)
                 {
                     <div style="background: rgba(0,0,0,0.7); padding: 6px; border-radius: 50%; backdrop-filter: blur(4px);">
                         @{ string icon; }
                         @switch (platform)
                         {
-                            case PlatformEnum.Android:
+                            case Platform.Android:
                                 icon = Icons.Material.Filled.Android;
                                 break;
-                            case PlatformEnum.Windows:
+                            case Platform.Windows:
                                 icon = Icons.Custom.Brands.MicrosoftWindows;
                                 break;
                             default:
                                 icon = Icons.Material.Filled.SportsEsports;
                                 break;
                         }
-                        <MudIcon Icon="@icon" Size="Size.Small" Style="color: white;" />
+                        <MudTooltip Arrow Placement="Placement.Top" Text="@platform.ToString()">
+                            <MudIcon Icon="@icon" Size="Size.Small" Style="color: white;" />
+                        </MudTooltip>
                     </div>
                 }
             </div>
@@ -42,10 +46,10 @@
             @if (Tags?.Any() == true)
             {
                 <MudStack Row Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
-                    @foreach (var tag in Tags)
+                    @foreach (Tag tag in Tags)
                     {
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {FontColorString}; color: {FontColorString}; font-size: 0.7rem;")" Class="px-2 py-0">
-                            @tag
+                            @tag.ToString()
                         </MudChip>
                     }
                 </MudStack>
@@ -77,9 +81,9 @@
     [Parameter] public required string Title { get; set; }
     [Parameter] public required string Description { get; set; }
     [Parameter] public required string HrefURL { get; set; }
-    [Parameter] public required List<PlatformEnum> Platforms { get; set; }
+    [Parameter] public required List<Platform> Platforms { get; set; }
     [Parameter] public string? GitHubUrl { get; set; }
-    [Parameter] public List<string>? Tags { get; set; }
+    [Parameter] public List<Tag>? Tags { get; set; }
 
     private bool IsHovered { get; set; }
 
