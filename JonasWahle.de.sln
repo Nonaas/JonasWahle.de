@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.Domain", "Jon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.Data", "JonasWahle.de.Data\JonasWahle.de.Data.csproj", "{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JonasWahle.de.UnitTests", "JonasWahle.de.UnitTests\JonasWahle.de.UnitTests.csproj", "{7DC525A5-3E69-4CA6-98DF-E4CD5594AD42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3E1F4BA-7C76-47EC-A1A6-D5BA3E1F84D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DC525A5-3E69-4CA6-98DF-E4CD5594AD42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DC525A5-3E69-4CA6-98DF-E4CD5594AD42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DC525A5-3E69-4CA6-98DF-E4CD5594AD42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DC525A5-3E69-4CA6-98DF-E4CD5594AD42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
