@@ -4,6 +4,7 @@ using JonasWahle.de.UI.Components;
 using JonasWahle.de.UI.Interfaces;
 using JonasWahle.de.UI.Services;
 using MudBlazor.Services;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,16 @@ builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.Expiration = TimeSpan.Zero;
 });
+
+// Add Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File($"{AppContext.BaseDirectory}/logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add base services
 builder.Services.AddRazorComponents()
