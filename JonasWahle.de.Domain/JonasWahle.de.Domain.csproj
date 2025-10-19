@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.JSInterop" Version="9.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\JonasWahle.de.Data\JonasWahle.de.Data.csproj" />
+  </ItemGroup>
+
 </Project>

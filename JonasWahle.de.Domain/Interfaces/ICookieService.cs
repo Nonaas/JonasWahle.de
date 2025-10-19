@@ -1,5 +1,4 @@
-﻿
-namespace JonasWahle.de.Domain.Interfaces
+﻿namespace JonasWahle.de.Domain.Interfaces
 {
     public interface ICookieService
     {
