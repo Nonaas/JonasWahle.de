@@ -1,23 +1,81 @@
-﻿<MudNavMenu>
-    <MudNavLink Match="NavLinkMatch.All" Href="/" Icon="@Icons.Material.Filled.Home">
-        Start
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+
+
+<MudNavMenu>
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/"))" Icon="@Icons.Material.Filled.Home" IconColor="@(IsActivePage("/") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/") ? Color.Secondary : Color.Primary)">
+            <strong>Start</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="ueber-mich" Icon="@Icons.Material.Filled.PersonSearch">
-        Über mich
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/ueber-mich"))" Icon="@Icons.Material.Filled.PersonSearch" IconColor="@(IsActivePage("/ueber-mich") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/ueber-mich") ? Color.Secondary : Color.Primary)">
+            <strong>Über mich</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="kontakt" Icon="@Icons.Material.Filled.Comment">
-        Kontakt
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/kontakt"))" Icon="@Icons.Material.Filled.Comment" IconColor="@(IsActivePage("/kontakt") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/kontakt") ? Color.Secondary : Color.Primary)">
+            <strong>Kontakt</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="online-werkzeuge" Icon="@Icons.Material.Filled.Widgets">
-        Online-Werkzeuge
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/online-werkzeuge"))" Icon="@Icons.Material.Filled.Widgets" IconColor="@(IsActivePage("/online-werkzeuge") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/online-werkzeuge") ? Color.Secondary : Color.Primary)">
+            <strong>Online-Werkzeuge</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="downloads" Icon="@Icons.Material.Filled.Download">
-        Downloads
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/downloads"))" Icon="@Icons.Material.Filled.Download" IconColor="@(IsActivePage("/downloads") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/downloads") ? Color.Secondary : Color.Primary)">
+            <strong>Downloads</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="datenschutz" Icon="@Icons.Material.Filled.Security">
-        Datenschutz
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/datenschutz"))" Icon="@Icons.Material.Filled.Security" IconColor="@(IsActivePage("/datenschutz") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/datenschutz") ? Color.Secondary : Color.Primary)">
+            <strong>Datenschutz</strong>
+        </MudText>
     </MudNavLink>
-    <MudNavLink Match="NavLinkMatch.All" Href="impressum" Icon="@Icons.Material.Filled.Article">
-        Impressum
+    <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateToPage("/impressum"))" Icon="@Icons.Material.Filled.Article" IconColor="@(IsActivePage("/impressum") ? Color.Secondary : Color.Primary)">
+        <MudText Color="@(IsActivePage("/impressum") ? Color.Secondary : Color.Primary)">
+            <strong>Impressum</strong>
+        </MudText>
     </MudNavLink>
 </MudNavMenu>
+
+
+@code{
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void NavigateToPage(string pageUri)
+    {
+        NavigationManager.NavigateTo(pageUri);
+    }
+
+    private bool IsActivePage(string pageUri)
+    {
+        string currentPath = new Uri(NavigationManager.Uri).AbsolutePath;
+        
+        if (pageUri == "/" && currentPath == "/")
+        {
+            return true;
+        }
+        
+        if (pageUri != "/" && currentPath.Equals(pageUri, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
