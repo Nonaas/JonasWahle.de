@@ -1,6 +1,7 @@
 using JonasWahle.de.Data;
 using JonasWahle.de.Domain.Interfaces;
 using JonasWahle.de.Domain.Services;
+using JonasWahle.de.Domain.Services.Auth;
 using JonasWahle.de.UI.Components;
 using JonasWahle.de.UI.Interfaces;
 using JonasWahle.de.UI.Services;
@@ -17,7 +18,11 @@ builder.Services.AddAntiforgery(options =>
 
 // Add Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Extensions.Http", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File($"{AppContext.BaseDirectory}/logs/log-.txt", rollingInterval: RollingInterval.Day)
@@ -46,7 +51,13 @@ builder.Services.AddScoped<ISnackbarService, SnackbarService>();
 builder.Services.AddScoped<IDownloadItemService, DownloadItemService>();
 builder.Services.AddScoped<ISmtpSettingService, SmtpSettingService>();
 
+// Add authentication services
+builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthStateService, AuthStateService>();
+
 WebApplication app = builder.Build();
+
+Log.Logger.Debug("--------- Application Start ---------");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
