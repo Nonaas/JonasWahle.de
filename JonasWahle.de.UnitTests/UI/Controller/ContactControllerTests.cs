@@ -1,9 +1,10 @@
 ﻿using AwesomeAssertions;
+using JonasWahle.de.Data.Models;
+using JonasWahle.de.Domain.Interfaces;
 using JonasWahle.de.Domain.Models;
 using JonasWahle.de.UI.Controller;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -11,14 +12,14 @@ namespace JonasWahle.de.UnitTests.UI.Controller
 {
     public class ContactControllerTests
     {
-        private readonly Mock<IOptions<SmtpSettings>> _mockSmtpOptions;
+        private readonly Mock<ISmtpSettingService> _mockSmtpService;
         private readonly Mock<ILogger<ContactController>> _mockLogger;
         private readonly ContactController _controller;
-        private readonly SmtpSettings _smtpSettings;
+        private readonly SmtpSetting _smtpSettings;
 
         public ContactControllerTests()
         {
-            _smtpSettings = new SmtpSettings
+            _smtpSettings = new SmtpSetting
             {
                 Host = "smtp.test.com",
                 Port = 587,
@@ -28,12 +29,12 @@ namespace JonasWahle.de.UnitTests.UI.Controller
                 ToAddress = "contact@test.com"
             };
 
-            _mockSmtpOptions = new Mock<IOptions<SmtpSettings>>();
-            _mockSmtpOptions.Setup(x => x.Value).Returns(_smtpSettings);
+            _mockSmtpService = new Mock<ISmtpSettingService>();
+            _mockSmtpService.Setup(x => x.GetSmtpSettingAsync()).ReturnsAsync(_smtpSettings);
 
             _mockLogger = new Mock<ILogger<ContactController>>();
 
-            _controller = new ContactController(_mockSmtpOptions.Object, _mockLogger.Object);
+            _controller = new ContactController(_mockLogger.Object, _mockSmtpService.Object);
         }
 
         [Fact]
@@ -107,13 +108,16 @@ namespace JonasWahle.de.UnitTests.UI.Controller
         }
 
         [Fact]
-        public void SmtpSettings_ShouldBeConfiguredCorrectly()
+        public async Task SmtpSettings_ShouldBeConfiguredCorrectlyAsync()
         {
+            SmtpSetting? smtpSetting = await _mockSmtpService.Object.GetSmtpSettingAsync();
+
             // Assert
-            _mockSmtpOptions.Object.Value.Host.Should().Be("smtp.test.com");
-            _mockSmtpOptions.Object.Value.Port.Should().Be(587);
-            _mockSmtpOptions.Object.Value.FromAddress.Should().Be("noreply@test.com");
-            _mockSmtpOptions.Object.Value.ToAddress.Should().Be("contact@test.com");
+            smtpSetting.Should().NotBeNull();
+            smtpSetting.Host.Should().Be("smtp.test.com");
+            smtpSetting.Port.Should().Be(587);
+            smtpSetting.FromAddress.Should().Be("noreply@test.com");
+            smtpSetting.ToAddress.Should().Be("contact@test.com");
         }
     }
 }
