@@ -20,27 +20,7 @@
 </MudScrollToTop>
 
 @* MudBlazor *@
-<MudThemeProvider Theme="_customTheme" />
+<MudThemeProvider Theme="AppTheme.Theme" />
 <MudPopoverProvider />
 <MudDialogProvider BackgroundClass="blurred-backdrop" />
 <MudSnackbarProvider />
-
-
-@code {
-    MudTheme _customTheme = new()
-    {
-        PaletteLight = new PaletteLight()
-        {
-            Primary = new("#13263c"),
-            Secondary = new("#ee595b"),
-            Tertiary = new("#ffffff")
-        },
-        PaletteDark = new PaletteDark()
-        {
-            Primary = new("#ee595b"),
-            Secondary = new("#13263c"),
-            Tertiary = new("#ffffff")
-        }
-    };
-
-}
