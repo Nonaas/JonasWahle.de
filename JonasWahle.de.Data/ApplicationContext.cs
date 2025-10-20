@@ -11,10 +11,12 @@ namespace JonasWahle.de.Data
     {
         public DbSet<DownloadItem> DownloadItems => Set<DownloadItem>();
 
+        public DbSet<SmtpSetting> SmtpSettings => Set<SmtpSetting>();
+
 
         /*
          * Create migration and update db:
-         * dotnet ef migrations add "Inital DB creation" --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
+         * dotnet ef migrations add "Move SmtpSetting from appsettings.json to local DB" --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
          * dotnet ef database update --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
          * 
          * Remove last migration (if not applied):
@@ -58,6 +60,8 @@ namespace JonasWahle.de.Data
                     c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                     c => c.ToList()
                 ));
+
+            modelBuilder.Entity<SmtpSetting>().ToTable("JW_SmtpSetting").HasKey(x => x.Id);
         }
 
     }

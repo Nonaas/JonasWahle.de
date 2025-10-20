@@ -7,7 +7,6 @@ using JonasWahle.de.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Serilog;
-using System;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +30,9 @@ builder.Services.AddDbContextFactory<ApplicationContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add base services
+builder.Services.AddHttpClient();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddHttpClient();
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 // Add controllers for API endpoints
 builder.Services.AddControllers();
