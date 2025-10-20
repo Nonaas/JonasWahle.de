@@ -5,6 +5,7 @@
         public static class CookieKeys
         {
             public const string CookieConsent = "CookieConsent";
+            public const string SessionCookie = "SessionId";
         }
     }
 }
