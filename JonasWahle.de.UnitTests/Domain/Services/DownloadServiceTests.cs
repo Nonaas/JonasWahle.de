@@ -23,7 +23,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             await context.SaveChangesAsync();
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.GetAllDownloadItemsAsync();
 
             // Assert
@@ -47,7 +47,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             }
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.GetDownloadItemByIdAsync(item.Id);
 
             // Assert
@@ -62,7 +62,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             TestDbContextFactory factory = new();
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.GetDownloadItemByIdAsync(Guid.NewGuid());
 
             // Assert
@@ -77,7 +77,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             TestDbContextFactory factory = new();
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.CreateDownloadItemAsync(newItem);
 
             // Assert
@@ -102,7 +102,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             }
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             await downloadService.DeleteDownloadItemAsync(item.Id);
 
             // Assert
@@ -130,7 +130,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             }
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.GetDownloadItemsByCategoryAsync("game");
 
             // Assert
@@ -157,7 +157,7 @@ namespace JonasWahle.de.UnitTests.Domain.Services
             item.Description = "Updated Description";
 
             // Act
-            DownloadService downloadService = new(factory);
+            DownloadItemService downloadService = new(factory);
             var result = await downloadService.UpdateDownloadItemAsync(item);
 
             // Assert

@@ -2,7 +2,7 @@
 
 namespace JonasWahle.de.Domain.Interfaces
 {
-    public interface IDownloadService
+    public interface IDownloadItemService
     {
         Task<DownloadItem> CreateDownloadItemAsync(DownloadItem downloadItem);
         Task DeleteDownloadItemAsync(Guid id);

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JonasWahle.de.Domain.Services
 {
-    public class DownloadService(IDbContextFactory<ApplicationContext> DbFactory) : IDownloadService
+    public class DownloadItemService(IDbContextFactory<ApplicationContext> DbFactory) : IDownloadItemService
     {
         public async Task<List<DownloadItem>> GetAllDownloadItemsAsync()
         {
