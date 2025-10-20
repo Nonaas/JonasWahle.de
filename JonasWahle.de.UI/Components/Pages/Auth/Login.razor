@@ -1,0 +1,125 @@
+﻿@page "/login"
+@using JonasWahle.de.Data.Enums
+@using JonasWahle.de.Data.Models
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Components.Layout
+@using JonasWahle.de.UI.Interfaces
+@inject IAuthStateService AuthStateService
+@inject ISnackbarService SnackbarService
+@inject NavigationManager NavigationManager
+@layout MinimalLayout
+
+<PageTitle>Login - Jonas Wahle</PageTitle>
+
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Elevation="4" Class="pa-8">
+        <MudStack Spacing="4" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h4" Align="Align.Center">
+                Login
+            </MudText>
+
+            <EditForm Model="@_loginModel" OnValidSubmit="HandleLoginAsync" style="width: 100%;">
+                <DataAnnotationsValidator />
+
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_loginModel.Username"
+                                  For="@(() => _loginModel.Username)"
+                                  Label="Benutzername"
+                                  Variant="Variant.Outlined"
+                                  Disabled="_loginInProcess"
+                                  AdornmentIcon="@Icons.Material.Filled.Person" />
+
+                    <MudTextField @bind-Value="_loginModel.Password"
+                                  For="@(() => _loginModel.Password)"
+                                  Label="Passwort"
+                                  InputType="@(_showPassword? InputType.Text: InputType.Password)"
+                                  Variant="Variant.Outlined"
+                                  Disabled="_loginInProcess"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showPassword? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                  OnAdornmentClick="() => _showPassword = !_showPassword"
+                                  AdornmentAriaLabel="Toggle Password Visibility" />
+
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               Disabled="_loginInProcess"
+                               FullWidth="true">
+                        @if (_loginInProcess)
+                        {
+                            <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Anmelden...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Anmelden</MudText>
+                        }
+                    </MudButton>
+                </MudStack>
+            </EditForm>
+
+            <MudDivider />
+            <MudLink Href="/" Color="Color.Secondary">
+                <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" Class="me-1" />
+                Zurück zur Website
+            </MudLink>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    private User _loginModel = new()
+    {
+        Username = string.Empty,
+        Password = string.Empty,
+        Role = Role.User
+    };
+
+    private bool _loginInProcess = false;
+    private bool _showPassword = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if already authenticated
+        if (await AuthStateService.CheckAuthStateAsync())
+        {
+            NavigationManager.NavigateTo("/dashboard");
+        }
+    }
+
+    private async Task HandleLoginAsync()
+    {
+        if (_loginInProcess) return;
+
+        _loginInProcess = true;
+
+        try
+        {
+            bool success = await AuthStateService.LoginAsync(_loginModel.Username, _loginModel.Password);
+
+            if (success)
+            {
+                SnackbarService.ShowSuccess("Erfolgreich angemeldet!");
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                SnackbarService.ShowError("Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.");
+                _loginModel.Password = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Anmeldefehler: {ex.Message}");
+        }
+        finally
+        {
+            _loginInProcess = false;
+        }
+    }
+}

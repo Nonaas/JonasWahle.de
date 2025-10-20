@@ -1,0 +1,160 @@
+﻿@page "/dashboard"
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Components.Layout
+@using JonasWahle.de.UI.Interfaces
+@inject IAuthStateService AuthStateService
+@inject NavigationManager NavigationManager
+@inject ISnackbarService SnackbarService
+@implements IDisposable
+@layout MinimalLayout
+
+<PageTitle>Admin Dashboard - Jonas Wahle</PageTitle>
+
+
+@if (_isAuthenticated)
+{
+    <MudContainer Class="mt-5" MaxWidth="MaxWidth.Large">
+        <MudStack Spacing="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                        <MudStack AlignItems="AlignItems.Start" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.h4">Dashboard</MudText>
+                        </MudStack>
+                    </MudHidden>
+                    <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.h4">Dashboard</MudText>
+                        </MudStack>
+                    </MudHidden>
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Logout" OnClick="async () => await HandleLogoutAsync()">
+                        Abmelden
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardContent>
+                            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Large" Color="Color.Secondary" />
+                                <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        SMTP Einstellungen
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center" Class="text-muted">
+                                        E-Mail-Konfiguration verwalten
+                                    </MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-center">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/admin/smtp-settings" StartIcon="@Icons.Material.Filled.Settings">
+                                Verwalten
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardContent>
+                            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.Download" Size="Size.Large" Color="Color.Secondary" />
+                                <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Download Items
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center" Class="text-muted">
+                                        Verfügbare Downloads verwalten
+                                    </MudText>
+                                </MudStack>                                
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-center">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/admin/download-items" StartIcon="@Icons.Material.Filled.Settings">
+                                Verwalten
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.body2" Color="Color.Primary">
+                            Angemeldet als: 
+                            <MudText Inline Typo="Typo.body2" Color="Color.Secondary">
+                                @AuthStateService.CurrentUser?.Username
+                            </MudText>
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Primary">
+                            Letzte Aktivität:
+                            <MudText Inline Typo="Typo.body2" Color="Color.Secondary">
+                                @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+                            </MudText>
+                        </MudText>
+                    </MudStack>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/">
+                        Zurück zur Website
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudStack>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+        <MudPaper Elevation="4" Class="pa-8 text-center">
+            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h5">Zugriff verweigert</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Sie müssen sich anmelden, um auf diesen Bereich zuzugreifen.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                    Zur Anmeldung
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Zurück zur Website
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+}
+
+
+@code {
+    private bool _isAuthenticated = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthStateService.CheckAuthStateAsync();
+        AuthStateService.AuthStateChanged += async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+    }
+
+    private async Task OnAuthStateChangedAsync(bool isAuthenticated)
+    {
+        _isAuthenticated = isAuthenticated;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleLogoutAsync()
+    {
+        await AuthStateService.LogoutAsync();
+        SnackbarService.ShowInfo("Erfolgreich abgemeldet.");
+        NavigationManager.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthStateService.AuthStateChanged -= async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+    }
+}
