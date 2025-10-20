@@ -43,7 +43,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IClipboardService, ClipboardService>();
 builder.Services.AddScoped<ISnackbarService, SnackbarService>();
-builder.Services.AddScoped<IDownloadService, DownloadService>();
+builder.Services.AddScoped<IDownloadItemService, DownloadItemService>();
+builder.Services.AddScoped<ISmtpSettingService, SmtpSettingService>();
 
 WebApplication app = builder.Build();
 
