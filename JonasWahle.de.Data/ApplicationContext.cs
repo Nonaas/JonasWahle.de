@@ -13,10 +13,12 @@ namespace JonasWahle.de.Data
 
         public DbSet<SmtpSetting> SmtpSettings => Set<SmtpSetting>();
 
+        public DbSet<User> Users => Set<User>();
+
 
         /*
          * Create migration and update db:
-         * dotnet ef migrations add "Move SmtpSetting from appsettings.json to local DB" --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
+         * dotnet ef migrations add "Add User authentication system" --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
          * dotnet ef database update --project JonasWahle.de.Data --startup-project JonasWahle.de.UI
          * 
          * Remove last migration (if not applied):
@@ -27,15 +29,16 @@ namespace JonasWahle.de.Data
          */
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Download items
             modelBuilder.Entity<DownloadItem>().ToTable("JW_DownloadItem").HasKey(x => x.Id);
 
-            // json options for string enums
+            /// Json options for string enums
             JsonSerializerOptions jsonOptions = new()
             {
                 Converters = { new JsonStringEnumConverter() }
             };
 
-            // Convert list to json with value comparer
+            /// Convert list to json with value comparer
             modelBuilder.Entity<DownloadItem>()
                 .Property(x => x.Platforms)
                 .HasConversion(
@@ -48,7 +51,7 @@ namespace JonasWahle.de.Data
                     c => c.ToList()
                 ));
 
-            // Convert list to json with value comparer
+            /// Convert list to json with value comparer
             modelBuilder.Entity<DownloadItem>()
                 .Property(x => x.Tags)
                 .HasConversion(
@@ -61,7 +64,14 @@ namespace JonasWahle.de.Data
                     c => c.ToList()
                 ));
 
+            // SMTP settings
             modelBuilder.Entity<SmtpSetting>().ToTable("JW_SmtpSetting").HasKey(x => x.Id);
+
+            // Users
+            modelBuilder.Entity<User>().ToTable("JW_User").HasKey(x => x.Id);
+            modelBuilder.Entity<User>()
+                .Property(x => x.Role)
+                .HasConversion<string>();
         }
 
     }
