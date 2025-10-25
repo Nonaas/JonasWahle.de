@@ -1,0 +1,271 @@
+﻿@page "/admin/download-items"
+@using JonasWahle.de.Data.Enums.DownloadItem
+@using JonasWahle.de.Data.Models
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Components.Dialogs
+@using JonasWahle.de.UI.Components.Layout
+@using JonasWahle.de.UI.Interfaces
+@using JonasWahle.de.Data
+@using Microsoft.EntityFrameworkCore
+@inject IAuthStateService AuthStateService
+@inject IDownloadItemService DownloadItemService
+@inject IDbContextFactory<ApplicationContext> DbFactory
+@inject ISnackbarService SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+@layout MinimalLayout
+
+<PageTitle>Download Items verwalten - Jonas Wahle</PageTitle>
+
+@if (_isAuthenticated)
+{
+    <MudContainer Class="mt-5" MaxWidth="MaxWidth.ExtraLarge">
+        <MudStack Spacing="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" Size="Size.Large" Color="Color.Primary" />
+                        <MudText Typo="Typo.h4">Download Items verwalten</MudText>
+                    </MudStack>
+                    <MudStack Row Spacing="2">
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" OnClick="() => OpenCreateEditDialog()">
+                            Neues Item
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/dashboard">
+                            Zurück
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+
+            @if (_isLoading)
+            {
+                <MudPaper Elevation="1" Class="pa-8 text-center">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.body1" Class="mt-2">Download Items werden geladen...</MudText>
+                </MudPaper>
+            }
+            else
+            {
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudDataGrid T="DownloadItem"
+                                 Items="@_downloadItems"
+                                 ReadOnly="false"
+                                 Filterable="true"
+                                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                                 SortMode="SortMode.Multiple"
+                                 Groupable="false"
+                                 Elevation="0"
+                                 Height="70vh">
+
+                        <Columns>
+                            <PropertyColumn Property="x => x.ImagePath" Title="Bild" Filterable="false" Sortable="false">
+                                <CellTemplate>
+                                    <MudAvatar Size="Size.Medium" Style="@($"background-color: {context.Item.BackgroundColor}; border-radius: 8px;")" Variant="Variant.Filled">
+                                        <MudImage Src="@context.Item.ImagePath" Alt="@context.Item.Title" Style="width: 100%; height: 100%; object-fit: cover;" />
+                                    </MudAvatar>
+                                </CellTemplate>
+                            </PropertyColumn>
+
+                            <PropertyColumn Property="x => x.Title" Title="Titel" />
+
+                            <PropertyColumn Property="x => x.Category" Title="Kategorie">
+                                <CellTemplate>
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@(context.Item.Category == "game" ? Color.Secondary : Color.Primary)">
+                                        @(context.Item.Category == "game" ? "Spiel" : "App")
+                                    </MudChip>
+                                </CellTemplate>
+                            </PropertyColumn>
+
+                            <PropertyColumn Property="x => x.Platforms" Title="Plattformen" Filterable="false">
+                                <CellTemplate>
+                                    <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                                        @foreach (var platform in context.Item.Platforms)
+                                        {
+                                            <MudIcon Icon="@GetPlatformIcon(platform)" Size="Size.Small" Title="@platform.ToString()" />
+                                        }
+                                    </MudStack>
+                                </CellTemplate>
+                            </PropertyColumn>
+
+                            <PropertyColumn Property="x => x.ReleaseDate" Title="Veröffentlicht" Format="dd.MM.yyyy" />
+
+                            <PropertyColumn Property="x => x.Tags" Title="Tags" Filterable="false" Sortable="false">
+                                <CellTemplate>
+                                    @if (context.Item.Tags?.Any() == true)
+                                    {
+                                        <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                                            @foreach (var tag in context.Item.Tags.Take(2))
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@tag.ToString()</MudChip>
+                                            }
+                                            @if (context.Item.Tags.Count > 2)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text">+@(context.Item.Tags.Count - 2)</MudChip>
+                                            }
+                                        </MudStack>
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+
+                            <PropertyColumn Property="x => x.IsActive" Title="Aktiv" Filterable="false">
+                                <CellTemplate>
+                                    <MudIcon Icon="@(context.Item.IsActive? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)" />
+                                </CellTemplate>
+                            </PropertyColumn>
+
+                            <TemplateColumn Title="Aktionen" Filterable="false" Sortable="false">
+                                <CellTemplate>
+                                    <MudStack Row Spacing="1">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       OnClick="() => OpenCreateEditDialog(context.Item)"
+                                                       Title="Bearbeiten" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
+                                                       OnClick="() => HandleDeleteAsync(context.Item)"
+                                                       Title="Löschen" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Launch"
+                                                       Color="Color.Secondary"
+                                                       Size="Size.Small"
+                                                       Href="@context.Item.DownloadUrl"
+                                                       Target="_blank"
+                                                       Title="Download öffnen" />
+                                    </MudStack>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+
+                        <PagerContent>
+                            <MudDataGridPager T="DownloadItem" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudPaper>
+            }
+        </MudStack>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+        <MudPaper Elevation="4" Class="pa-8 text-center">
+            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h5">Zugriff verweigert</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Sie müssen sich anmelden, um auf diesen Bereich zuzugreifen.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                    Zur Anmeldung
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Zurück zur Website
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    private bool _isAuthenticated = false;
+    private bool _isLoading = true;
+    private List<DownloadItem> _downloadItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthStateService.CheckAuthStateAsync();
+        AuthStateService.AuthStateChanged += async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+
+        if (_isAuthenticated)
+        {
+            await LoadDownloadItemsAsync();
+        }
+    }
+
+    private async Task OnAuthStateChangedAsync(bool isAuthenticated)
+    {
+        _isAuthenticated = isAuthenticated;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadDownloadItemsAsync()
+    {
+        try
+        {
+            // Load all items including inactive ones for admin view
+            using var context = await DbFactory.CreateDbContextAsync();
+            _downloadItems = await context.DownloadItems
+                .OrderByDescending(x => x.ReleaseDate)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Fehler beim Laden der Download Items: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenCreateEditDialog(DownloadItem? item = null)
+    {
+        var parameters = new DialogParameters();
+        if (item != null)
+        {
+            parameters.Add("DownloadItem", item);
+        }
+
+        var dialog = await DialogService.ShowAsync<DownloadItemDialog>(
+            item == null ? "Neues Download Item erstellen" : "Download Item bearbeiten",
+            parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true });
+
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await LoadDownloadItemsAsync();
+        }
+    }
+
+    private async Task HandleDeleteAsync(DownloadItem item)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Löschen bestätigen",
+            $"Möchten Sie das Download Item '{item.Title}' wirklich löschen?",
+            yesText: "Löschen", cancelText: "Abbrechen");
+
+        if (confirm == true)
+        {
+            try
+            {
+                await DownloadItemService.DeleteDownloadItemAsync(item.Id);
+                SnackbarService.ShowSuccess($"'{item.Title}' wurde erfolgreich gelöscht.");
+                await LoadDownloadItemsAsync();
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.ShowError($"Fehler beim Löschen: {ex.Message}");
+            }
+        }
+    }
+
+    private string GetPlatformIcon(Platform platform)
+    {
+        return platform switch
+        {
+            Platform.Android => Icons.Material.Filled.Android,
+            Platform.Windows => Icons.Custom.Brands.MicrosoftWindows,
+            _ => Icons.Material.Filled.Computer
+        };
+    }
+
+    public void Dispose()
+    {
+        AuthStateService.AuthStateChanged -= async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+    }
+}

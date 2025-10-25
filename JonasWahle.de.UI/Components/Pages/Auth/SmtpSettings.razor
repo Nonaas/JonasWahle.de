@@ -1,0 +1,236 @@
+﻿@page "/admin/smtp-settings"
+@using JonasWahle.de.Data.Models
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Components.Layout
+@using JonasWahle.de.UI.Interfaces
+@inject IAuthStateService AuthStateService
+@inject ISmtpSettingService SmtpSettingService
+@inject ISnackbarService SnackbarService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+@layout MinimalLayout
+
+<PageTitle>SMTP Einstellungen - Jonas Wahle</PageTitle>
+
+@if (_isAuthenticated)
+{
+    <MudContainer Class="mt-5" MaxWidth="MaxWidth.Medium">
+        <MudStack Spacing="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Large" Color="Color.Primary" />
+                        <MudText Typo="Typo.h4">SMTP Einstellungen</MudText>
+                    </MudStack>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/dashboard">
+                        Zurück
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+
+            @if (_isLoading)
+            {
+                <MudPaper Elevation="1" Class="pa-8 text-center">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.body1" Class="mt-2">Einstellungen werden geladen...</MudText>
+                </MudPaper>
+            }
+            else
+            {
+                <MudPaper Elevation="1" Class="pa-4">
+                    <EditForm Model="@_smtpSetting" OnValidSubmit="HandleSaveAsync">
+                        <DataAnnotationsValidator />
+                        
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.h6" Class="mb-2">Server-Konfiguration</MudText>
+                            
+                            <MudGrid>
+                                <MudItem xs="12" md="8">
+                                    <MudTextField @bind-Value="_smtpSetting.Host"
+                                                  For="@(() => _smtpSetting.Host)"
+                                                  Label="SMTP Server"
+                                                  Variant="Variant.Outlined"
+                                                  Disabled="_isSaving"
+                                                  AdornmentIcon="@Icons.Material.Filled.Dns"
+                                                  Placeholder="smtp.gmail.com" />
+                                </MudItem>
+                                <MudItem xs="12" md="4">
+                                    <MudNumericField @bind-Value="_smtpSetting.Port"
+                                                     For="@(() => _smtpSetting.Port)"
+                                                     Label="Port"
+                                                     Variant="Variant.Outlined"
+                                                     Disabled="_isSaving"
+                                                     Min="1"
+                                                     Max="65535" />
+                                </MudItem>
+                            </MudGrid>
+
+                            <MudCheckBox @bind-Value="_smtpSetting.UseSsl"
+                                         For="@(() => _smtpSetting.UseSsl)"
+                                         Label="SSL/TLS verwenden"
+                                         Disabled="_isSaving"
+                                         Color="Color.Primary" />
+
+                            <MudDivider />
+                            <MudText Typo="Typo.h6" Class="mb-2">Authentifizierung</MudText>
+
+                            <MudTextField @bind-Value="_smtpSetting.Username"
+                                          For="@(() => _smtpSetting.Username)"
+                                          Label="Benutzername"
+                                          Variant="Variant.Outlined"
+                                          Disabled="_isSaving"
+                                          AdornmentIcon="@Icons.Material.Filled.Person" data-bwignore />
+
+                            <MudTextField @bind-Value="_smtpSetting.Password"
+                                          For="@(() => _smtpSetting.Password)"
+                                          Label="Passwort"
+                                          InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                          Variant="Variant.Outlined"
+                                          Disabled="_isSaving"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                          OnAdornmentClick="() => _showPassword = !_showPassword"
+                                          AdornmentAriaLabel="Passwort anzeigen/verstecken" data-bwignore />
+
+                            <MudDivider />
+                            <MudText Typo="Typo.h6" Class="mb-2">E-Mail-Adressen</MudText>
+
+                            <MudTextField @bind-Value="_smtpSetting.FromAddress"
+                                          For="@(() => _smtpSetting.FromAddress)"
+                                          Label="Absender-Adresse"
+                                          Variant="Variant.Outlined"
+                                          Disabled="_isSaving"
+                                          AdornmentIcon="@Icons.Material.Filled.Send"
+                                          Placeholder="noreply@jonaswahle.de" />
+
+                            <MudTextField @bind-Value="_smtpSetting.ToAddress"
+                                          For="@(() => _smtpSetting.ToAddress)"
+                                          Label="Empfänger-Adresse"
+                                          Variant="Variant.Outlined"
+                                          Disabled="_isSaving"
+                                          AdornmentIcon="@Icons.Material.Filled.Inbox"
+                                          Placeholder="wahle.jonas@web.de" />
+
+                            <MudDivider Class="mt-4" />
+
+                            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Die Einstellungen werden automatisch validiert bevor sie gespeichert werden.
+                                </MudText>
+                                
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Save"
+                                           Disabled="_isSaving"
+                                           Size="Size.Large">
+                                    @if (_isSaving)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-2">Speichern...</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText>Einstellungen speichern</MudText>
+                                    }
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </EditForm>
+                </MudPaper>
+            }
+        </MudStack>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+        <MudPaper Elevation="4" Class="pa-8 text-center">
+            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h5">Zugriff verweigert</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Sie müssen sich anmelden, um auf diesen Bereich zuzugreifen.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                    Zur Anmeldung
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Zurück zur Website
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    private bool _isAuthenticated = false;
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private bool _showPassword = false;
+    
+    private SmtpSetting _smtpSetting = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthStateService.CheckAuthStateAsync();
+        AuthStateService.AuthStateChanged += async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+        
+        if (_isAuthenticated)
+        {
+            await LoadSmtpSettingsAsync();
+        }
+    }
+
+    private async Task OnAuthStateChangedAsync(bool isAuthenticated)
+    {
+        _isAuthenticated = isAuthenticated;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSmtpSettingsAsync()
+    {
+        try
+        {
+            var existingSetting = await SmtpSettingService.GetSmtpSettingAsync();
+            if (existingSetting != null)
+            {
+                _smtpSetting = existingSetting;
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Fehler beim Laden der SMTP-Einstellungen: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleSaveAsync()
+    {
+        if (_isSaving) return;
+
+        _isSaving = true;
+
+        try
+        {
+            await SmtpSettingService.UpdateSmtpSettingAsync(_smtpSetting);
+            SnackbarService.ShowSuccess("SMTP-Einstellungen erfolgreich gespeichert!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Fehler beim Speichern: {ex.Message}");
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthStateService.AuthStateChanged -= async (bool isAuthenticated) => await OnAuthStateChangedAsync(isAuthenticated);
+    }
+}

@@ -1,0 +1,234 @@
+﻿@using JonasWahle.de.Data.Enums.DownloadItem
+@using JonasWahle.de.Data.Models
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Interfaces
+@inject IDownloadItemService DownloadItemService
+@inject ISnackbarService SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@_downloadItem" OnValidSubmit="HandleSaveAsync">
+            <DataAnnotationsValidator />
+            
+            <MudStack Spacing="3">
+                <MudGrid>
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="_downloadItem.Title"
+                                      For="@(() => _downloadItem.Title)"
+                                      Label="Titel"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Disabled="_isSaving" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudSelect @bind-Value="_downloadItem.Category"
+                                   For="@(() => _downloadItem.Category)"
+                                   Label="Kategorie"
+                                   Variant="Variant.Outlined"
+                                   Required="true"
+                                   Disabled="_isSaving">
+                            <MudSelectItem Value="@("game")">Spiel</MudSelectItem>
+                            <MudSelectItem Value="@("app")">App</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+
+                <MudTextField @bind-Value="_downloadItem.Description"
+                              For="@(() => _downloadItem.Description)"
+                              Label="Beschreibung"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              Disabled="_isSaving" />
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_downloadItem.ImagePath"
+                                      For="@(() => _downloadItem.ImagePath)"
+                                      Label="Bild-Pfad"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Disabled="_isSaving"
+                                      AdornmentIcon="@Icons.Material.Filled.Image"
+                                      Placeholder="/images/myapp.jpg" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_downloadItem.DownloadUrl"
+                                      For="@(() => _downloadItem.DownloadUrl)"
+                                      Label="Download-URL"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Disabled="_isSaving"
+                                      AdornmentIcon="@Icons.Material.Filled.Link"
+                                      Placeholder="https://example.itch.io/game" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudTextField @bind-Value="_downloadItem.GitHubUrl"
+                              For="@(() => _downloadItem.GitHubUrl)"
+                              Label="GitHub-URL (Optional)"
+                              Variant="Variant.Outlined"
+                              Disabled="_isSaving"
+                              AdornmentIcon="@Icons.Custom.Brands.GitHub"
+                              Placeholder="https://github.com/user/repo" />
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_downloadItem.BackgroundColor"
+                                      For="@(() => _downloadItem.BackgroundColor)"
+                                      Label="Hintergrundfarbe"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Disabled="_isSaving"
+                                      AdornmentIcon="@Icons.Material.Filled.Palette"
+                                      Placeholder="#FF5722" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_downloadItem.FontColor"
+                                      For="@(() => _downloadItem.FontColor)"
+                                      Label="Schriftfarbe"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Disabled="_isSaving"
+                                      AdornmentIcon="@Icons.Material.Filled.FormatColorText"
+                                      Placeholder="#FFFFFF" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudDatePicker @bind-Date="_releaseDate"
+                               Label="Veröffentlichungsdatum"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               Disabled="_isSaving" />
+
+                <MudSelect @bind-SelectedValues="_selectedPlatforms"
+                           Label="Plattformen"
+                           MultiSelection="true"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           Disabled="_isSaving">
+                    @foreach (Platform platform in Enum.GetValues<Platform>())
+                    {
+                        <MudSelectItem Value="@platform">@platform.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect @bind-SelectedValues="_selectedTags"
+                           Label="Tags (Optional)"
+                           MultiSelection="true"
+                           Variant="Variant.Outlined"
+                           Disabled="_isSaving">
+                    @foreach (Tag tag in Enum.GetValues<Tag>())
+                    {
+                        <MudSelectItem Value="@tag">@tag.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudCheckBox @bind-Value="_downloadItem.IsActive"
+                             Label="Aktiv"
+                             Disabled="_isSaving"
+                             Color="Color.Primary" />
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="_isSaving">Abbrechen</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="HandleSaveAsync"
+                   Disabled="_isSaving">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Speichern...</MudText>
+            }
+            else
+            {
+                <MudText>@(_isEdit ? "Aktualisieren" : "Erstellen")</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] 
+    public DownloadItem? DownloadItem { get; set; }
+
+    private DownloadItem _downloadItem = new()
+    {
+        Title = string.Empty,
+        Description = string.Empty,
+        Category = "app",
+        ImagePath = string.Empty,
+        BackgroundColor = "#2196F3",
+        FontColor = "#FFFFFF",
+        Platforms = new List<Platform> { Platform.Windows },
+        ReleaseDate = DateTime.Now,
+        DownloadUrl = string.Empty
+    };
+
+    private bool _isEdit = false;
+    private bool _isSaving = false;
+    private DateTime? _releaseDate;
+    private IEnumerable<Platform> _selectedPlatforms = new List<Platform> { Platform.Windows };
+    private IEnumerable<Tag> _selectedTags = new List<Tag>();
+
+    protected override void OnInitialized()
+    {
+        if (DownloadItem != null)
+        {
+            _isEdit = true;
+            _downloadItem = DownloadItem;
+            
+            _releaseDate = DownloadItem.ReleaseDate;
+            _selectedPlatforms = DownloadItem.Platforms;
+            _selectedTags = DownloadItem.Tags ?? new List<Tag>();
+        }
+        else
+        {
+            _releaseDate = DateTime.Now;
+        }
+    }
+
+    private async Task HandleSaveAsync()
+    {
+        if (_isSaving) return;
+
+        _isSaving = true;
+
+        try
+        {
+            // Update model with selected values
+            _downloadItem.ReleaseDate = _releaseDate ?? DateTime.Now;
+            _downloadItem.Platforms = _selectedPlatforms.ToList();
+            _downloadItem.Tags = _selectedTags.Any() ? _selectedTags.ToList() : null;
+
+            if (_isEdit)
+            {
+                await DownloadItemService.UpdateDownloadItemAsync(_downloadItem);
+                SnackbarService.ShowSuccess("Download Item erfolgreich aktualisiert!");
+            }
+            else
+            {
+                await DownloadItemService.CreateDownloadItemAsync(_downloadItem);
+                SnackbarService.ShowSuccess("Download Item erfolgreich erstellt!");
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Fehler beim Speichern: {ex.Message}");
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
