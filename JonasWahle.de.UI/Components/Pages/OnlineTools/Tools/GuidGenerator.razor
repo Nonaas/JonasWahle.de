@@ -1,0 +1,137 @@
+﻿@using JonasWahle.de.Domain.Utilities
+@using JonasWahle.de.Domain.Interfaces
+@using JonasWahle.de.UI.Interfaces
+@inject ISnackbarService SnackbarService
+@inject IClipboardService ClipboardService
+
+
+<MudStack Spacing="3">
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="4">
+            <MudSelect T="string" @bind-Value="_guidVersion" Label="GUID Version" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("v4")">Version 4 (Zufällig)</MudSelectItem>
+                <MudSelectItem Value="@("v7")">Version 7 (Zeitbasiert)</MudSelectItem>
+                <MudSelectItem Value="@("v7random")">Version 7 (Zufällige Zeit)</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect T="string" @bind-Value="_guidFormat" Label="Format" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("default")">Standard (mit Bindestrichen)</MudSelectItem>
+                <MudSelectItem Value="@("n")">Ohne Bindestriche</MudSelectItem>
+                <MudSelectItem Value="@("b")">Mit geschweiften Klammern</MudSelectItem>
+                <MudSelectItem Value="@("p")">Mit runden Klammern</MudSelectItem>
+                <MudSelectItem Value="@("x")">Hexadezimal</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudNumericField T="int" @bind-Value="_guidCount" Label="Anzahl" Min="1" Max="100" Variant="Variant.Outlined" />
+        </MudItem>
+    </MudGrid>
+
+    <MudStack Row Justify="Justify.Center" Class="w-100 pb-2">
+        <MudButton Class="w-50" Color="Color.Success" Variant="Variant.Filled" OnClick="GenerateGuids" StartIcon="@Icons.Material.Filled.Refresh">
+            Generieren
+        </MudButton>
+        <MudButton Class="w-50" Color="Color.Error" Variant="Variant.Filled" OnClick="ClearGuids" StartIcon="@Icons.Material.Filled.Clear">
+            Zurücksetzen
+        </MudButton>
+    </MudStack>
+
+    <MudTextField T="string"
+                  Label="Generierte GUIDs/UUIDs"
+                  Value="@_generatedGuids"
+                  Lines="@Math.Max(3, _guidCount)" 
+                  ReadOnly
+                  FullWidth
+                  Variant="Variant.Filled" />
+
+    <MudStack Row Justify="Justify.Center" StretchItems="StretchItems.All" Class="w-100 pt-1">
+        <MudButton Disabled="string.IsNullOrEmpty(_generatedGuids)" Class="w-50" Color="Color.Primary" Variant="Variant.Filled" OnClick="async () => await CopyToClipboardAsync(_generatedGuids)" StartIcon="@Icons.Material.Filled.ContentCopy">
+            Alle kopieren
+        </MudButton>
+    </MudStack>
+</MudStack>
+
+
+@code {
+    private string _guidVersion = "v4";
+    private string _guidFormat = "default";
+    private int _guidCount = 1;
+    private string _generatedGuids = string.Empty;
+
+
+    private void GenerateGuids()
+    {
+        try
+        {
+            List<string> guids = new();
+            Random random = new();
+
+            for (int i = 0; i < _guidCount; i++)
+            {
+                Guid guid = _guidVersion switch
+                {
+                    "v4" => Guid.NewGuid(),
+                    "v7" => Guid.CreateVersion7(),
+                    "v7random" => Guid.CreateVersion7(GenerateRandomTimestamp(random)),
+                    _ => Guid.NewGuid()
+                };
+
+                string formattedGuid = _guidFormat switch
+                {
+                    "n" => guid.ToString("N"),
+                    "b" => guid.ToString("B"),
+                    "p" => guid.ToString("P"),
+                    "x" => guid.ToString("X"),
+                    _ => guid.ToString("D")
+                };
+                guids.Add(formattedGuid);
+            }
+
+            _generatedGuids = string.Join("\n", guids);
+            SnackbarService.ShowSuccess($"{_guidCount} GUID(s) generiert!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+
+    private DateTimeOffset GenerateRandomTimestamp(Random random)
+    {
+        // Within last 10 and next 10 years
+        DateTimeOffset baseDate = DateTimeOffset.Now;
+        int randomDays = random.Next(-3650, 3650);
+        int randomHours = random.Next(0, 24);
+        int randomMinutes = random.Next(0, 60);
+        int randomSeconds = random.Next(0, 60);
+        int randomMilliseconds = random.Next(0, 1000);
+
+        DateTimeOffset randomOffset = baseDate
+            .AddDays(randomDays)
+            .AddHours(randomHours)
+            .AddMinutes(randomMinutes)
+            .AddSeconds(randomSeconds)
+            .AddMilliseconds(randomMilliseconds);
+
+        return randomOffset;
+    }
+
+    private void ClearGuids()
+    {
+        _generatedGuids = string.Empty;
+    }
+
+    private async Task CopyToClipboardAsync(string text)
+    {
+        try
+        {
+            await ClipboardService.CopyToClipboardAsync(text);
+            SnackbarService.ShowSuccess("Kopieren erfolgreich!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+    }
+}
