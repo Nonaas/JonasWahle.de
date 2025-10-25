@@ -44,7 +44,7 @@
             </TitleContent>
             <ChildContent>
                 <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
-                    @foreach (var color in _quickColors)
+                    @foreach (string color in _quickColors)
                     {
                         <MudButton Style="@($"background-color: {color}; min-width: 40px; min-height: 40px; border-radius: 50%;")"
                                    OnClick="() => SetQuickColor(color)"
@@ -135,7 +135,7 @@
                                 <MudStack Spacing="2">
                                     <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">Schnell-Farben</MudText>
                                     <MudStack Row Spacing="1" Wrap="Wrap.Wrap" Justify="Justify.Center">
-                                        @foreach (var color in _quickColors)
+                                        @foreach (string color in _quickColors)
                                         {
                                             <MudButton Style="@($"background-color: {color}; min-width: 35px; min-height: 35px; border-radius: 50%;")"
                                                       OnClick="() => SetQuickColor(color)"
@@ -193,7 +193,6 @@
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; color: #999; text-align: center;">
                         <MudIcon Icon="@Icons.Material.Filled.Draw" Size="Size.Large" Class="mb-2" />
                         <MudText Typo="Typo.body1">Klicken und ziehen zum Zeichnen</MudText>
-                        <MudText Typo="Typo.caption">Auf Mobilgeräten: Berühren und ziehen</MudText>
                     </div>
                 }
             </div>
@@ -217,15 +216,18 @@
         "#800080", "#FFC0CB", "#A52A2A", "#808080", "#008080", "#000080", "#800000", "#808000"
     };
 
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await JSRuntime.InvokeVoidAsync("initializeCanvas", canvasElement);
             await UpdateBrushPreview();
-            
+
             // Listen for fullscreen changes
             await JSRuntime.InvokeVoidAsync("setupFullscreenListener", DotNetObjectReference.Create(this));
+
+            await OnFullscreenChangeAsync(false);
         }
     }
 
@@ -247,10 +249,10 @@
         {
             _isDrawing = true;
             _hasDrawn = true;
-            var touch = e.Touches[0];
-            var rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
-            var x = touch.ClientX - rect.Left;
-            var y = touch.ClientY - rect.Top;
+            TouchPoint touch = e.Touches[0];
+            BoundingClientRect rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
+            double x = touch.ClientX - rect.Left;
+            double y = touch.ClientY - rect.Top;
             await JSRuntime.InvokeVoidAsync("startDrawing", canvasElement, x, y, _brushColor.ToString(), _brushSize, _isErasing);
         }
     }
@@ -269,10 +271,10 @@
     {
         if (_isDrawing && e.Touches.Length > 0)
         {
-            var touch = e.Touches[0];
-            var rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
-            var x = touch.ClientX - rect.Left;
-            var y = touch.ClientY - rect.Top;
+            TouchPoint touch = e.Touches[0];
+            BoundingClientRect rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
+            double x = touch.ClientX - rect.Left;
+            double y = touch.ClientY - rect.Top;
             await JSRuntime.InvokeVoidAsync("draw", canvasElement, x, y);
         }
     }
@@ -297,7 +299,6 @@
     {
         await JSRuntime.InvokeVoidAsync("clearCanvas", canvasElement);
         _hasDrawn = false;
-        SnackbarService.ShowSuccess("Zeichnung gelöscht!");
     }
 
     private async Task DownloadCanvas()
@@ -347,7 +348,7 @@
     }
 
     [JSInvokable]
-    public async Task OnFullscreenChange(bool isFullscreen)
+    public async Task OnFullscreenChangeAsync(bool isFullscreen)
     {
         _isFullscreen = isFullscreen;
         
@@ -367,16 +368,7 @@
             await JSRuntime.InvokeVoidAsync("restoreOriginalCanvasSize", canvasElement);
         }
         
-        await InvokeAsync(StateHasChanged);
-        
-        if (isFullscreen)
-        {
-            SnackbarService.ShowInfo("Vollbild aktiviert - Werkzeuge über Settings-Button verfügbar");
-        }
-        else
-        {
-            SnackbarService.ShowInfo("Vollbild deaktiviert");
-        }
+        await InvokeAsync(StateHasChanged);        
     }
 
     [JSInvokable]
@@ -409,6 +401,7 @@
         public double Top { get; set; }
         public double Right { get; set; }
         public double Bottom { get; set; }
+
         public double Width { get; set; }
         public double Height { get; set; }
     }

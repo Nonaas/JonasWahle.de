@@ -21,7 +21,7 @@ function handleFullscreenChange() {
         document.msFullscreenElement);
 
     if (dotNetReference) {
-        dotNetReference.invokeMethodAsync('OnFullscreenChange', isFullscreen);
+        dotNetReference.invokeMethodAsync('OnFullscreenChangeAsync', isFullscreen);
     }
 }
 
@@ -31,7 +31,7 @@ function handleOrientationChange() {
         if (dotNetReference) {
             dotNetReference.invokeMethodAsync('OnOrientationChange');
         }
-    }, 100);
+    }, 300);
 }
 
 function handleResize() {
@@ -68,14 +68,14 @@ window.exitFullscreen = () => {
 function getAdjustedCoordinates(canvas, x, y) {
     const rect = canvas.getBoundingClientRect();
     
-    // Check if we're in fullscreen mode
+    // Check if we are in fullscreen mode
     const isFullscreen = !!(document.fullscreenElement ||
         document.webkitFullscreenElement ||
         document.mozFullScreenElement ||
         document.msFullscreenElement);
     
     if (isFullscreen) {
-        // In fullscreen, we need to account for the padding and container positioning
+        // In fullscreen we need to account for the centered canvas positioning
         const container = canvas.closest('.canvas-container');
         const containerRect = container.getBoundingClientRect();
         
@@ -83,7 +83,7 @@ function getAdjustedCoordinates(canvas, x, y) {
         const canvasOffsetX = rect.left - containerRect.left;
         const canvasOffsetY = rect.top - containerRect.top;
         
-        // Adjust coordinates relative to the actual canvas position
+        // Since canvas maintains aspect ration coordinates are simpler
         return {
             x: x,
             y: y,
@@ -91,7 +91,7 @@ function getAdjustedCoordinates(canvas, x, y) {
             scaleY: canvas.height / rect.height
         };
     } else {
-        // Normal mode - use original calculation
+        // In normal mode we use original calculation
         return {
             x: x,
             y: y,
@@ -102,7 +102,7 @@ function getAdjustedCoordinates(canvas, x, y) {
 }
 
 window.initializeCanvas = (canvas) => {
-    const ctx = canvas.getContext('2d'); // canvas.getContext('2d', { willReadFrequently: true });
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     // Set white background
     ctx.fillStyle = 'white';
@@ -122,17 +122,21 @@ window.initializeCanvas = (canvas) => {
     // Create preview overlay canvas
     const previewCanvas = document.createElement('canvas');
     previewCanvas.style.position = 'absolute';
-    previewCanvas.style.top = '0';
-    previewCanvas.style.left = '0';
+    previewCanvas.style.top = '50%';
+    previewCanvas.style.left = '50%';
+    previewCanvas.style.transform = 'translate(-50%, -50%)';
     previewCanvas.style.pointerEvents = 'none';
     previewCanvas.style.zIndex = '10';
     previewCanvas.width = canvas.width;
     previewCanvas.height = canvas.height;
-    previewCanvas.style.width = '100%';
-    previewCanvas.style.height = '100%';
+    previewCanvas.style.maxWidth = '100vw';
+    previewCanvas.style.maxHeight = '100vh';
+    previewCanvas.style.width = 'auto';
+    previewCanvas.style.height = 'auto';
+    previewCanvas.style.objectFit = 'contain';
 
     canvas.previewCanvas = previewCanvas;
-    canvas.previewCtx = previewCanvas.getContext('2d');
+    canvas.previewCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
 
     // Insert preview canvas after main canvas
     canvas.parentNode.appendChild(previewCanvas);
@@ -140,7 +144,7 @@ window.initializeCanvas = (canvas) => {
     console.log('Canvas initialized with brush preview');
 };
 
-// New function to resize canvas for fullscreen
+// Resize canvas for fullscreen with proper aspect ratio handling
 window.resizeCanvasForFullscreen = (canvas) => {
     const isFullscreen = !!(document.fullscreenElement ||
         document.webkitFullscreenElement ||
@@ -153,18 +157,25 @@ window.resizeCanvasForFullscreen = (canvas) => {
         const originalWidth = canvas.width;
         const originalHeight = canvas.height;
         
-        // Get screen dimensions
-        const screenWidth = screen.width * window.devicePixelRatio;
-        const screenHeight = screen.height * window.devicePixelRatio;
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         
-        // Use screen dimensions for fullscreen canvas
-        canvas.width = screenWidth;
-        canvas.height = screenHeight;
+        // Calculate best fit dimensions that maintain aspect ratio
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        
+        // Use device pixel ratio for crisp rendering but maintain reasonable size
+        const targetWidth = Math.min(viewportWidth * devicePixelRatio, screen.width * devicePixelRatio);
+        const targetHeight = Math.min(viewportHeight * devicePixelRatio, screen.height * devicePixelRatio);
+        
+        // Set canvas dimensions to target size
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         
         // Update preview canvas dimensions
         if (canvas.previewCanvas) {
-            canvas.previewCanvas.width = screenWidth;
-            canvas.previewCanvas.height = screenHeight;
+            canvas.previewCanvas.width = targetWidth;
+            canvas.previewCanvas.height = targetHeight;
         }
         
         // Restore canvas context properties
@@ -172,14 +183,22 @@ window.resizeCanvasForFullscreen = (canvas) => {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Scale and redraw the original content
+        // Scale and redraw the original content to fit the new canvas size
+        const scaleX = canvas.width / originalWidth;
+        const scaleY = canvas.height / originalHeight;
+        const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+        
+        const scaledWidth = originalWidth * scale;
+        const scaledHeight = originalHeight * scale;
+        const offsetX = (canvas.width - scaledWidth) / 2;
+        const offsetY = (canvas.height - scaledHeight) / 2;
+        
         ctx.drawImage(
             createImageFromImageData(originalData, originalWidth, originalHeight),
             0, 0, originalWidth, originalHeight,
-            0, 0, canvas.width, canvas.height
+            offsetX, offsetY, scaledWidth, scaledHeight
         );
         
-        console.log(`Canvas resized for fullscreen: ${canvas.width}x${canvas.height}`);
     } else {
         // Restore original dimensions when exiting fullscreen
         restoreOriginalCanvasSize(canvas);
@@ -191,7 +210,7 @@ function createImageFromImageData(imageData, width, height) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = width;
     tempCanvas.height = height;
-    const tempCtx = tempCanvas.getContext('2d');
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
     tempCtx.putImageData(imageData, 0, 0);
     return tempCanvas;
 }
@@ -207,10 +226,17 @@ window.restoreOriginalCanvasSize = (canvas) => {
     canvas.width = 1920;
     canvas.height = 1080;
     
-    // Update preview canvas dimensions
+    // Update preview canvas dimensions and reset positioning
     if (canvas.previewCanvas) {
         canvas.previewCanvas.width = 1920;
         canvas.previewCanvas.height = 1080;
+        canvas.previewCanvas.style.top = '0';
+        canvas.previewCanvas.style.left = '0';
+        canvas.previewCanvas.style.transform = 'none';
+        canvas.previewCanvas.style.width = '100%';
+        canvas.previewCanvas.style.height = '100%';
+        canvas.previewCanvas.style.maxWidth = 'none';
+        canvas.previewCanvas.style.maxHeight = 'none';
     }
     
     // Restore canvas context properties
@@ -225,7 +251,6 @@ window.restoreOriginalCanvasSize = (canvas) => {
         0, 0, canvas.width, canvas.height
     );
     
-    console.log(`Canvas restored to original size: ${canvas.width}x${canvas.height}`);
 };
 
 window.updateBrushSettings = (canvas, color, size, isErasing) => {
@@ -255,7 +280,7 @@ window.updatePreview = (canvas, x, y) => {
     // Scale the coordinates for preview
     const scaledX = coords.x * coords.scaleX;
     const scaledY = coords.y * coords.scaleY;
-    const scaledSize = canvas.brushSize * coords.scaleX;
+    const scaledSize = canvas.brushSize * Math.min(coords.scaleX, coords.scaleY);
 
     // Clear previous preview
     previewCtx.clearRect(0, 0, canvas.previewCanvas.width, canvas.previewCanvas.height);
@@ -301,13 +326,13 @@ window.startDrawing = (canvas, x, y, color, size, isErasing) => {
     ctx.globalCompositeOperation = isErasing ? 'destination-out' : 'source-over';
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
-    ctx.lineWidth = size * coords.scaleX; // Scale brush size too
+    ctx.lineWidth = size * Math.min(coords.scaleX, coords.scaleY); // Use minimum scale to maintain round brush
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     // Draw a dot at the start position
     ctx.beginPath();
-    ctx.arc(scaledX, scaledY, (size * coords.scaleX) / 2, 0, 2 * Math.PI);
+    ctx.arc(scaledX, scaledY, (size * Math.min(coords.scaleX, coords.scaleY)) / 2, 0, 2 * Math.PI);
     ctx.fill();
 };
 
@@ -336,12 +361,10 @@ window.clearCanvas = (canvas) => {
 
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    console.log('Canvas cleared');
 };
 
 window.downloadCanvas = (canvas, filename) => {
     try {
-        console.log('Download attempt - Canvas dimensions:', canvas.width, 'x', canvas.height);
 
         const url = canvas.toDataURL('image/png', 1.0);
 
@@ -357,7 +380,6 @@ window.downloadCanvas = (canvas, filename) => {
         a.click();
         document.body.removeChild(a);
 
-        console.log('Canvas downloaded successfully');
     } catch (error) {
         console.error('Error downloading canvas:', error);
     }
