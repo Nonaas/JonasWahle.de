@@ -18,8 +18,8 @@
         <MudItem xs="12" sm="6" md="3">
             <MudNumericField T="int" @bind-Value="_diceCount" Label="Anzahl Würfel" Min="1" Max="10" Variant="Variant.Outlined" />
         </MudItem>
-        <MudItem xs="12" md="6">
-            <MudButton Class="w-100" Size="Size.Large" Color="Color.Success" Variant="Variant.Filled" OnClick="RollDice" Disabled="_isRolling" StartIcon="@Icons.Material.Filled.Casino">
+        <MudItem xs="12" md="6" Class="d-flex align-items-center">
+            <MudButton FullWidth Size="Size.Large" Color="Color.Success" Variant="Variant.Filled" OnClick="RollDiceAsync" Disabled="_isRolling" StartIcon="@Icons.Material.Filled.Casino">
                 @if (_isRolling)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" />
@@ -63,7 +63,7 @@
                     </MudItem>
                     <MudItem xs="12" sm="4">
                         <MudText Typo="Typo.body1" Align="Align.Center">
-                            <strong>Durchschnitt:</strong> @_diceResults.Average():F1
+                            <strong>Durchschnitt:</strong> @_diceResults.Average()
                         </MudText>
                     </MudItem>
                     <MudItem xs="12" sm="4">
@@ -92,7 +92,7 @@
                         {
                             <MudText Typo="Typo.body2">
                                 <strong>@roll.Timestamp.ToString("HH:mm:ss"):</strong>
-                                @roll.DiceCount×D@roll.DiceType = [@string.Join(", ", roll.Results)] (Summe: @roll.Results.Sum())
+                                @($"{roll.DiceCount} x D{roll.DiceType} = [{string.Join(", ", roll.Results)}] (Summe: {roll.Results.Sum()})")
                             </MudText>
                         }
                         @if (_rollHistory.Count > 10)
@@ -109,45 +109,6 @@
     }
 </MudStack>
 
-<style>
-    .dice-animate {
-        animation: diceRoll 0.8s ease-in-out;
-        transform-origin: center;
-    }
-
-    @@keyframes diceRoll {
-        0% {
-            transform: rotate(0deg) scale(1);
-        }
-
-        25% {
-            transform: rotate(90deg) scale(1.1);
-        }
-
-        50% {
-            transform: rotate(180deg) scale(0.9);
-        }
-
-        75% {
-            transform: rotate(270deg) scale(1.1);
-        }
-
-        100% {
-            transform: rotate(360deg) scale(1);
-        }
-    }
-
-    .dice-paper {
-        transition: all 0.3s ease;
-        min-width: 60px;
-        min-height: 60px;
-        border-radius: 8px;
-    }
-
-        .dice-paper:hover {
-            transform: scale(1.05);
-        }
-</style>
 
 @code {
     private int _selectedDiceType = 6;
@@ -157,7 +118,8 @@
     private List<DiceRoll> _rollHistory = new();
     private Random _random = new();
 
-    private async Task RollDice()
+
+    private async Task RollDiceAsync()
     {
         try
         {
