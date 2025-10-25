@@ -1,0 +1,415 @@
+﻿@using JonasWahle.de.Domain.Utilities
+@using JonasWahle.de.UI.Interfaces
+@using MudBlazor.Utilities
+@inject IJSRuntime JSRuntime
+@inject ISnackbarService SnackbarService
+
+<MudStack Spacing="3">
+    <MudGrid Spacing="4" Justify="Justify.Center" Class="align-items-center">
+        <MudItem xs="12" sm="6" md="3" Class="px-3 pb-6">
+            <MudColorPicker Label="Stiftfarbe" @bind-Value="_brushColor" @bind-Value:after="UpdateBrushPreview" ColorPickerView="ColorPickerView.Palette" AnchorOrigin="Origin.BottomCenter" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3" Class="p-3">
+            <MudStack AlignItems="AlignItems.Center">
+                <MudSlider T="int" @bind-Value="_brushSize" @bind-Value:after="UpdateBrushPreview" Min="1" Max="50" Step="1">
+                    Stiftgröße: @_brushSize px
+                </MudSlider>
+            </MudStack>
+        </MudItem>
+        <MudItem xs="12" md="6" Class="p-3">
+            <MudStack Row Justify="Justify.SpaceEvenly" AlignItems="AlignItems.Center" Breakpoint="Breakpoint.MdAndDown">
+                <MudButton FullWidth Color="Color.Primary" Variant="Variant.Filled" OnClick="ToggleEraser" StartIcon="@(_isErasing? Icons.Material.Filled.Edit : Icons.Material.Filled.CleaningServices)">
+                    @(_isErasing ? "Zeichnen" : "Radierer")
+                </MudButton>
+                <MudButton FullWidth Color="Color.Primary" Variant="Variant.Filled" OnClick="ToggleFullscreen" StartIcon="@(_isFullscreen? Icons.Material.Filled.FullscreenExit : Icons.Material.Filled.Fullscreen)">
+                    @(_isFullscreen ? "Vollbild beenden" : "Vollbild")
+                </MudButton>
+                <MudButton FullWidth Color="Color.Error" Variant="Variant.Filled" OnClick="ClearCanvas" StartIcon="@Icons.Material.Filled.Clear">
+                    Zurücksetzen
+                </MudButton>
+                <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" OnClick="DownloadCanvas" StartIcon="@Icons.Material.Filled.Download">
+                    Herunterladen
+                </MudButton>
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Palette" />
+                    <MudText>Schnell-Farben</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                    @foreach (var color in _quickColors)
+                    {
+                        <MudButton Style="@($"background-color: {color}; min-width: 40px; min-height: 40px; border-radius: 50%;")"
+                                   OnClick="() => SetQuickColor(color)"
+                                   Class="ma-1">
+                        </MudButton>
+                    }
+                </MudStack>
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudPaper Elevation="3" Class="pa-2">
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.body2" Align="Align.Center">
+                @if (_isErasing)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.CleaningServices" Class="me-1" />
+                    <span>Radierer aktiv</span>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Edit" Class="me-1" />
+                    <span>Zeichnen aktiv</span>
+                }
+            </MudText>
+
+            <div @ref="canvasContainer" class="canvas-container" style="position: relative; width: 100%; height: -webkit-fill-available; border: 2px solid #ddd; border-radius: 8px;">
+                <canvas @ref="canvasElement"
+                        id="drawingCanvas"
+                        width="1920"
+                        height="1080"
+                        style="cursor: none; width: 100%; height: 100%; display: block; touch-action: none;"
+                        @onmousedown="StartDrawing"
+                        @onmousemove="HandleMouseMove"
+                        @onmouseup="StopDrawing"
+                        @onmouseleave="HidePreview"
+                        @onmouseenter="ShowPreview"
+                        @ontouchstart="StartDrawing"
+                        @ontouchmove="Draw"
+                        @ontouchend="StopDrawing">
+                </canvas>
+
+                @* Fullscreen Floating Toolbar *@
+                @if (_isFullscreen)
+                {
+                    <!-- Toolbar Toggle Button -->
+                    <div class="fullscreen-toolbar-toggle">
+                        <MudIconButton Icon="@(_showFullscreenToolbar? Icons.Material.Filled.ChevronLeft : Icons.Material.Filled.ChevronRight)"
+                                      Color="Color.Primary"
+                                      Variant="Variant.Filled"
+                                      Size="Size.Large"
+                                      OnClick="ToggleFullscreenToolbar"
+                                      Class="@(_showFullscreenToolbar ? "toolbar-toggle-active" : "")" />
+                    </div>
+
+                    <!-- Sliding Toolbar Panel -->
+                    <div class="fullscreen-toolbar @(_showFullscreenToolbar ? "toolbar-open" : "toolbar-closed")">
+                        <MudPaper Elevation="8" Class="toolbar-content">
+                            <MudStack Spacing="3" Class="pa-4">
+                                <!-- Close button -->
+                                <div class="d-flex justify-end">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                  Size="Size.Small"
+                                                  OnClick="() => _showFullscreenToolbar = false" />
+                                </div>
+
+                                <!-- Color Picker -->
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">Farbe</MudText>
+                                    <MudColorPicker @bind-Value="_brushColor"
+                                                   @bind-Value:after="UpdateBrushPreview"
+                                                   ColorPickerView="ColorPickerView.Palette"
+                                                   DisableToolbar="true"
+                                                   DisableAlpha="true"
+                                                   Class="compact-color-picker" />
+                                </MudStack>
+
+                                <!-- Brush Size -->
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">
+                                        Pinselgröße: @_brushSize px
+                                    </MudText>
+                                    <MudSlider T="int" @bind-Value="_brushSize" @bind-Value:after="UpdateBrushPreview"
+                                              Min="1" Max="50" Step="1" Color="Color.Primary" />
+                                </MudStack>
+
+                                <!-- Quick Colors -->
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">Schnell-Farben</MudText>
+                                    <MudStack Row Spacing="1" Wrap="Wrap.Wrap" Justify="Justify.Center">
+                                        @foreach (var color in _quickColors)
+                                        {
+                                            <MudButton Style="@($"background-color: {color}; min-width: 35px; min-height: 35px; border-radius: 50%;")"
+                                                      OnClick="() => SetQuickColor(color)"
+                                                      Size="Size.Small"
+                                                      Variant="Variant.Filled"
+                                                      Class="ma-1 pa-0">
+                                            </MudButton>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+
+                                <!-- Tool Buttons -->
+                                <MudDivider />
+                                <MudStack Spacing="2">
+                                    <MudButton Color="Color.Primary"
+                                               Variant="@(_isErasing ? Variant.Outlined : Variant.Filled)"
+                                              OnClick="ToggleEraser" 
+                                              StartIcon="@Icons.Material.Filled.CleaningServices"
+                                              FullWidth="true">
+                                        @(_isErasing ? "Radierer aktiv" : "Radierer")
+                                    </MudButton>
+                                    
+                                    <MudButton Color="Color.Primary" 
+                                              Variant="Variant.Filled" 
+                                              OnClick="ToggleFullscreen" 
+                                              StartIcon="@Icons.Material.Filled.FullscreenExit"
+                                              FullWidth="true">
+                                        Vollbild beenden
+                                    </MudButton>
+
+                                    <MudButton Color="Color.Error" 
+                                              Variant="Variant.Filled" 
+                                              OnClick="ClearCanvas" 
+                                              StartIcon="@Icons.Material.Filled.Clear"
+                                              FullWidth="true">
+                                        Zurücksetzen
+                                    </MudButton>
+                                    
+                                    <MudButton Color="Color.Success" 
+                                              Variant="Variant.Filled" 
+                                              OnClick="DownloadCanvas" 
+                                              StartIcon="@Icons.Material.Filled.Download"
+                                              FullWidth="true">
+                                        Herunterladen
+                                    </MudButton>
+                                    
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </div>
+                }
+
+                @if (!_hasDrawn)
+                {
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; color: #999; text-align: center;">
+                        <MudIcon Icon="@Icons.Material.Filled.Draw" Size="Size.Large" Class="mb-2" />
+                        <MudText Typo="Typo.body1">Klicken und ziehen zum Zeichnen</MudText>
+                        <MudText Typo="Typo.caption">Auf Mobilgeräten: Berühren und ziehen</MudText>
+                    </div>
+                }
+            </div>
+        </MudStack>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private ElementReference canvasElement;
+    private ElementReference canvasContainer;
+    private MudColor _brushColor = "#000000";
+    private int _brushSize = 25;
+    private bool _isDrawing = false;
+    private bool _isErasing = false;
+    private bool _hasDrawn = false;
+    private bool _isFullscreen = false;
+    private bool _showFullscreenToolbar = false;
+
+    private readonly string[] _quickColors = {
+        "#000000", "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#FFA500",
+        "#800080", "#FFC0CB", "#A52A2A", "#808080", "#008080", "#000080", "#800000", "#808000"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeCanvas", canvasElement);
+            await UpdateBrushPreview();
+            
+            // Listen for fullscreen changes
+            await JSRuntime.InvokeVoidAsync("setupFullscreenListener", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private void ToggleFullscreenToolbar()
+    {
+        _showFullscreenToolbar = !_showFullscreenToolbar;
+    }
+
+    private async Task StartDrawing(MouseEventArgs e)
+    {
+        _isDrawing = true;
+        _hasDrawn = true;
+        await JSRuntime.InvokeVoidAsync("startDrawing", canvasElement, e.OffsetX, e.OffsetY, _brushColor.ToString(), _brushSize, _isErasing);
+    }
+
+    private async Task StartDrawing(TouchEventArgs e)
+    {
+        if (e.Touches.Length > 0)
+        {
+            _isDrawing = true;
+            _hasDrawn = true;
+            var touch = e.Touches[0];
+            var rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
+            var x = touch.ClientX - rect.Left;
+            var y = touch.ClientY - rect.Top;
+            await JSRuntime.InvokeVoidAsync("startDrawing", canvasElement, x, y, _brushColor.ToString(), _brushSize, _isErasing);
+        }
+    }
+
+    private async Task HandleMouseMove(MouseEventArgs e)
+    {
+        await JSRuntime.InvokeVoidAsync("updatePreview", canvasElement, e.OffsetX, e.OffsetY);
+        
+        if (_isDrawing)
+        {
+            await JSRuntime.InvokeVoidAsync("draw", canvasElement, e.OffsetX, e.OffsetY);
+        }
+    }
+
+    private async Task Draw(TouchEventArgs e)
+    {
+        if (_isDrawing && e.Touches.Length > 0)
+        {
+            var touch = e.Touches[0];
+            var rect = await JSRuntime.InvokeAsync<BoundingClientRect>("getCanvasBoundingRect", canvasElement);
+            var x = touch.ClientX - rect.Left;
+            var y = touch.ClientY - rect.Top;
+            await JSRuntime.InvokeVoidAsync("draw", canvasElement, x, y);
+        }
+    }
+
+    private async Task ShowPreview()
+    {
+        await JSRuntime.InvokeVoidAsync("showPreview", canvasElement);
+    }
+
+    private async Task HidePreview()
+    {
+        await JSRuntime.InvokeVoidAsync("hidePreview", canvasElement);
+        _isDrawing = false; // Stop drawing when mouse leaves canvas
+    }
+
+    private void StopDrawing()
+    {
+        _isDrawing = false;
+    }
+
+    private async Task ClearCanvas()
+    {
+        await JSRuntime.InvokeVoidAsync("clearCanvas", canvasElement);
+        _hasDrawn = false;
+        SnackbarService.ShowSuccess("Zeichnung gelöscht!");
+    }
+
+    private async Task DownloadCanvas()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("downloadCanvas", canvasElement, "mein-kunstwerk.png");
+            SnackbarService.ShowSuccess("Zeichnung heruntergeladen!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Fehler beim Herunterladen: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleEraser()
+    {
+        _isErasing = !_isErasing;
+        await UpdateBrushPreview();
+        SnackbarService.ShowInfo(_isErasing ? "Radierer aktiviert" : "Zeichnen aktiviert");
+    }
+
+    private async Task SetQuickColor(string color)
+    {
+        _brushColor = new MudColor(color);
+        _isErasing = false;
+        await UpdateBrushPreview();
+    }
+
+    private async Task ToggleFullscreen()
+    {
+        try
+        {
+            if (_isFullscreen)
+            {
+                await JSRuntime.InvokeVoidAsync("exitFullscreen");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("enterFullscreen", canvasContainer);
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError($"Vollbild-Fehler: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnFullscreenChange(bool isFullscreen)
+    {
+        _isFullscreen = isFullscreen;
+        
+        // Reset toolbar state when exiting fullscreen
+        if (!isFullscreen)
+        {
+            _showFullscreenToolbar = false;
+        }
+        
+        // Resize canvas based on fullscreen state
+        if (isFullscreen)
+        {
+            await JSRuntime.InvokeVoidAsync("resizeCanvasForFullscreen", canvasElement);
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("restoreOriginalCanvasSize", canvasElement);
+        }
+        
+        await InvokeAsync(StateHasChanged);
+        
+        if (isFullscreen)
+        {
+            SnackbarService.ShowInfo("Vollbild aktiviert - Werkzeuge über Settings-Button verfügbar");
+        }
+        else
+        {
+            SnackbarService.ShowInfo("Vollbild deaktiviert");
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnOrientationChange()
+    {
+        if (_isFullscreen)
+        {
+            await JSRuntime.InvokeVoidAsync("resizeCanvasForFullscreen", canvasElement);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnResize()
+    {
+        if (_isFullscreen)
+        {
+            await JSRuntime.InvokeVoidAsync("resizeCanvasForFullscreen", canvasElement);
+        }
+    }
+
+    private async Task UpdateBrushPreview()
+    {
+        await JSRuntime.InvokeVoidAsync("updateBrushSettings", canvasElement, _brushColor.ToString(), _brushSize, _isErasing);
+    }
+
+    public class BoundingClientRect
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Right { get; set; }
+        public double Bottom { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+    }
+}
