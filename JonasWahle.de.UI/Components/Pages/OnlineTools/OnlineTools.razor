@@ -35,6 +35,39 @@
         <MudExpansionPanel>
             <TitleContent>
                 <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.Key" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">GUID/UUID Generator</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <GuidGenerator />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.Casino" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">Würfel-Simulator</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <DiceRoller />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.Draw" />
+                    <MudText Color="Color.Primary" Typo="Typo.h5">Einfaches Zeichentool</MudText>
+                </MudStack>
+            </TitleContent>
+            <ChildContent>
+                <DrawingCanvas />
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudStack Row AlignItems="AlignItems.Center">
                     <MudIcon Color="Color.Secondary" Icon="@Icons.Material.Filled.DataObject" />
                     <MudText Color="Color.Primary" Typo="Typo.h5">JSON Formatierer</MudText>
                 </MudStack>
