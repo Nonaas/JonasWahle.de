@@ -1,0 +1,232 @@
+﻿@using JonasWahle.de.Domain.Utilities
+@using JonasWahle.de.UI.Interfaces
+@inject ISnackbarService SnackbarService
+
+<MudStack Spacing="4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6" md="3">
+            <MudSelect T="int" @bind-Value="_selectedDiceType" Label="Würfel-Typ" Variant="Variant.Outlined">
+                <MudSelectItem Value="4">D4 (4-seitig)</MudSelectItem>
+                <MudSelectItem Value="6">D6 (6-seitig)</MudSelectItem>
+                <MudSelectItem Value="8">D8 (8-seitig)</MudSelectItem>
+                <MudSelectItem Value="10">D10 (10-seitig)</MudSelectItem>
+                <MudSelectItem Value="12">D12 (12-seitig)</MudSelectItem>
+                <MudSelectItem Value="20">D20 (20-seitig)</MudSelectItem>
+                <MudSelectItem Value="100">D100 (100-seitig)</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudNumericField T="int" @bind-Value="_diceCount" Label="Anzahl Würfel" Min="1" Max="10" Variant="Variant.Outlined" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudButton Class="w-100" Size="Size.Large" Color="Color.Success" Variant="Variant.Filled" OnClick="RollDice" Disabled="_isRolling" StartIcon="@Icons.Material.Filled.Casino">
+                @if (_isRolling)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                    <span class="ms-2">Würfelt...</span>
+                }
+                else
+                {
+                    <span>Würfeln!</span>
+                }
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (_diceResults.Any())
+    {
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.h6" Align="Align.Center">Würfel-Ergebnisse</MudText>
+
+                <MudGrid Justify="Justify.Center" Spacing="2">
+                    @for (int i = 0; i < _diceResults.Count; i++)
+                    {
+                        var index = i;
+                        <MudItem>
+                            <MudPaper Elevation="2" Class="@GetDiceClass(index)" Style="@GetDiceStyle()">
+                                <MudText Typo="Typo.h4" Align="Align.Center" Class="pa-3">
+                                    @_diceResults[index]
+                                </MudText>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+
+                <MudDivider />
+
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.body1" Align="Align.Center">
+                            <strong>Summe:</strong> @_diceResults.Sum()
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.body1" Align="Align.Center">
+                            <strong>Durchschnitt:</strong> @_diceResults.Average():F1
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.body1" Align="Align.Center">
+                            <strong>Höchster:</strong> @_diceResults.Max()
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudPaper>
+    }
+
+    @if (_rollHistory.Any())
+    {
+        <MudExpansionPanels>
+            <MudExpansionPanel>
+                <TitleContent>
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.History" />
+                        <MudText>Würfel-Verlauf (@_rollHistory.Count Würfe)</MudText>
+                    </MudStack>
+                </TitleContent>
+                <ChildContent>
+                    <MudStack Spacing="2">
+                        @foreach (var roll in _rollHistory.TakeLast(10).Reverse())
+                        {
+                            <MudText Typo="Typo.body2">
+                                <strong>@roll.Timestamp.ToString("HH:mm:ss"):</strong>
+                                @roll.DiceCount×D@roll.DiceType = [@string.Join(", ", roll.Results)] (Summe: @roll.Results.Sum())
+                            </MudText>
+                        }
+                        @if (_rollHistory.Count > 10)
+                        {
+                            <MudText Typo="Typo.caption" Align="Align.Center">... und @(_rollHistory.Count - 10) weitere</MudText>
+                        }
+                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Text" OnClick="ClearHistory">
+                            Verlauf löschen
+                        </MudButton>
+                    </MudStack>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+</MudStack>
+
+<style>
+    .dice-animate {
+        animation: diceRoll 0.8s ease-in-out;
+        transform-origin: center;
+    }
+
+    @@keyframes diceRoll {
+        0% {
+            transform: rotate(0deg) scale(1);
+        }
+
+        25% {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        50% {
+            transform: rotate(180deg) scale(0.9);
+        }
+
+        75% {
+            transform: rotate(270deg) scale(1.1);
+        }
+
+        100% {
+            transform: rotate(360deg) scale(1);
+        }
+    }
+
+    .dice-paper {
+        transition: all 0.3s ease;
+        min-width: 60px;
+        min-height: 60px;
+        border-radius: 8px;
+    }
+
+        .dice-paper:hover {
+            transform: scale(1.05);
+        }
+</style>
+
+@code {
+    private int _selectedDiceType = 6;
+    private int _diceCount = 1;
+    private List<int> _diceResults = new();
+    private bool _isRolling = false;
+    private List<DiceRoll> _rollHistory = new();
+    private Random _random = new();
+
+    private async Task RollDice()
+    {
+        try
+        {
+            _isRolling = true;
+            StateHasChanged();
+
+            // Add some suspense with a delay
+            await Task.Delay(800);
+
+            _diceResults.Clear();
+
+            for (int i = 0; i < _diceCount; i++)
+            {
+                int result = _random.Next(1, _selectedDiceType + 1);
+                _diceResults.Add(result);
+            }
+
+            // Add to history
+            _rollHistory.Add(new DiceRoll
+            {
+                Timestamp = DateTime.Now,
+                DiceType = _selectedDiceType,
+                DiceCount = _diceCount,
+                Results = new List<int>(_diceResults)
+            });
+
+            SnackbarService.ShowSuccess($"Gewürfelt: {string.Join(", ", _diceResults)}!");
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.ShowError(ex.Message);
+        }
+        finally
+        {
+            _isRolling = false;
+        }
+    }
+
+    private string GetDiceClass(int index)
+    {
+        return _isRolling ? "dice-paper dice-animate" : "dice-paper";
+    }
+
+    private string GetDiceStyle()
+    {
+        return _selectedDiceType switch
+        {
+            4 => "background: linear-gradient(45deg, #ff6b6b, #ee5a52);",
+            6 => "background: linear-gradient(45deg, #4ecdc4, #44a08d);",
+            8 => "background: linear-gradient(45deg, #feca57, #ff9ff3);",
+            10 => "background: linear-gradient(45deg, #48dbfb, #0abde3);",
+            12 => "background: linear-gradient(45deg, #ff9ff3, #f368e0);",
+            20 => "background: linear-gradient(45deg, #54a0ff, #2e86de);",
+            100 => "background: linear-gradient(45deg, #5f27cd, #341f97);",
+            _ => "background: linear-gradient(45deg, #ddd, #bbb);"
+        };
+    }
+
+    private void ClearHistory()
+    {
+        _rollHistory.Clear();
+        SnackbarService.ShowInfo("Verlauf gelöscht.");
+    }
+
+    public class DiceRoll
+    {
+        public DateTime Timestamp { get; set; }
+        public int DiceType { get; set; }
+        public int DiceCount { get; set; }
+        public List<int> Results { get; set; } = new();
+    }
+}
