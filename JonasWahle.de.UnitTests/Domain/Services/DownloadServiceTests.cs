@@ -158,12 +158,10 @@ namespace JonasWahle.de.UnitTests.Domain.Services
 
             // Act
             DownloadItemService downloadService = new(factory);
-            var result = await downloadService.UpdateDownloadItemAsync(item);
+            bool result = await downloadService.UpdateDownloadItemAsync(item);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Title.Should().Be("Updated Title");
-            result.Description.Should().Be("Updated Description");
+            result.Should().BeTrue();
             using ApplicationContext verificationContext = factory.CreateDbContext();
             var updatedItem = await verificationContext.DownloadItems.FindAsync(item.Id);
             updatedItem.Should().NotBeNull();
