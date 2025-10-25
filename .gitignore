@@ -38,3 +38,5 @@ packages/
 Thumbs.db
 /JonasWahle.de.UI/Properties
 JonasWahle.de.UI/app.db
+JonasWahle.de.UI/app.db-shm
+JonasWahle.de.UI/app.db-wal
