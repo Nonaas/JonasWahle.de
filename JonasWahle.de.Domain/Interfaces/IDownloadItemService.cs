@@ -9,6 +9,6 @@ namespace JonasWahle.de.Domain.Interfaces
         Task<List<DownloadItem>> GetAllDownloadItemsAsync();
         Task<DownloadItem?> GetDownloadItemByIdAsync(Guid id);
         Task<List<DownloadItem>> GetDownloadItemsByCategoryAsync(string category);
-        Task<DownloadItem> UpdateDownloadItemAsync(DownloadItem downloadItem);
+        Task<bool> UpdateDownloadItemAsync(DownloadItem downloadItem);
     }
 }

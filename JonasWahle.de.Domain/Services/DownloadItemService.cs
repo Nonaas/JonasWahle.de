@@ -40,12 +40,29 @@ namespace JonasWahle.de.Domain.Services
             return downloadItem;
         }
 
-        public async Task<DownloadItem> UpdateDownloadItemAsync(DownloadItem downloadItem)
+        public async Task<bool> UpdateDownloadItemAsync(DownloadItem updatedItem)
         {
+            if (updatedItem == null)
+            {
+                return false;
+            }
+
             using ApplicationContext context = await DbFactory.CreateDbContextAsync();
-            context.DownloadItems.Update(downloadItem);
+
+            // Get existing item
+            DownloadItem? existingItem = await context.DownloadItems
+                .FirstOrDefaultAsync(x => x.Id == updatedItem.Id);
+            
+            if (existingItem == null)
+            {
+                return false;
+            }
+
+            // Properly update existing entity with updatedItem
+            context.Entry(existingItem).CurrentValues.SetValues(updatedItem);
+            
             await context.SaveChangesAsync();
-            return downloadItem;
+            return true;
         }
 
         public async Task DeleteDownloadItemAsync(Guid id)
